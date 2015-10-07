@@ -37,12 +37,12 @@ namespace DFSformat
         struct Superblock
         {
             public byte filesystemType;
-            public ushort numClusters;
+            public uint numClusters;
             public byte clusterFactor;
             public uint inodeArraySize;
-            public ushort bitMapSize;
-            ushort numFreeClusters;
-            public ushort numFreeInode;
+            public uint bitMapSize;
+            uint numFreeClusters;
+            public uint numFreeInode;
 
             public void SetNumFreeClusters(ushort numFreeClusters)
             {
@@ -51,7 +51,7 @@ namespace DFSformat
 
             public byte[] GetBytes()
             {
-                byte[] data = new byte[14];
+                byte[] data = new byte[GetLength()];
                 byte[] tmp;
 
                 data[0] = filesystemType;
@@ -59,33 +59,41 @@ namespace DFSformat
                 tmp = BitConverter.GetBytes(numClusters);
                 data[1] = tmp[0];
                 data[2] = tmp[1];
+                data[3] = tmp[2];
+                data[4] = tmp[3];
 
-                data[3] = clusterFactor;
+                data[5] = clusterFactor;
 
                 tmp = BitConverter.GetBytes(inodeArraySize);
-                data[4] = tmp[0];
-                data[5] = tmp[1];
-                data[6] = tmp[2];
-                data[7] = tmp[3];
+                data[6] = tmp[0];
+                data[7] = tmp[1];
+                data[8] = tmp[2];
+                data[9] = tmp[3];
 
                 tmp = BitConverter.GetBytes(bitMapSize);
-                data[8] = tmp[0];
-                data[9] = tmp[1];
-
-                tmp = BitConverter.GetBytes(numFreeClusters);
                 data[10] = tmp[0];
                 data[11] = tmp[1];
+                data[12] = tmp[2];
+                data[13] = tmp[3];
+
+                tmp = BitConverter.GetBytes(numFreeClusters);
+                data[14] = tmp[0];
+                data[15] = tmp[1];
+                data[16] = tmp[2];
+                data[17] = tmp[3];
 
                 tmp = BitConverter.GetBytes(numFreeInode);
-                data[12] = tmp[0];
-                data[13] = tmp[1];
+                data[18] = tmp[0];
+                data[19] = tmp[1];
+                data[20] = tmp[2];
+                data[21] = tmp[3];
 
                 return data;
             }
 
-            public uint GetLength()
+            public static uint GetLength()
             {
-                return 14;
+                return 22;
             }
         }
 
@@ -152,7 +160,7 @@ namespace DFSformat
             public struct Inode
             {
                 byte fileType;
-                ushort inodeId;
+                uint inodeId;
                 ushort userId;
                 ushort groupId;
                 ushort permissions;
@@ -161,11 +169,11 @@ namespace DFSformat
                 ulong datetimeFileCreated;
                 ulong datetimeFileModified;
                 ulong datetimeInodeModified;
-                ushort firstClusterIndex;
+                uint firstClusterIndex;
 
                 public byte[] GetBytes()
                 {
-                    byte[] data = new byte[40];
+                    byte[] data = new byte[GetLength()];
                     byte[] tmp;
 
                     data[0] = fileType;
@@ -173,67 +181,71 @@ namespace DFSformat
                     tmp = BitConverter.GetBytes(inodeId);
                     data[1] = tmp[0];
                     data[2] = tmp[1];
+                    data[3] = tmp[2];
+                    data[4] = tmp[3];
 
                     tmp = BitConverter.GetBytes(userId);
-                    data[3] = tmp[0];
-                    data[4] = tmp[1];
-
-                    tmp = BitConverter.GetBytes(groupId);
                     data[5] = tmp[0];
                     data[6] = tmp[1];
 
-                    tmp = BitConverter.GetBytes(permissions);
+                    tmp = BitConverter.GetBytes(groupId);
                     data[7] = tmp[0];
                     data[8] = tmp[1];
 
-                    data[9] = attributes;
+                    tmp = BitConverter.GetBytes(permissions);
+                    data[9] = tmp[0];
+                    data[10] = tmp[1];
+
+                    data[11] = attributes;
 
                     tmp = BitConverter.GetBytes(fileSize);
-                    data[10] = tmp[0];
-                    data[11] = tmp[1];
-                    data[12] = tmp[2];
-                    data[13] = tmp[3];
+                    data[12] = tmp[0];
+                    data[13] = tmp[1];
+                    data[14] = tmp[2];
+                    data[15] = tmp[3];
 
                     tmp = BitConverter.GetBytes(datetimeFileCreated);
-                    data[14] = tmp[0];
-                    data[15] = tmp[1];
-                    data[16] = tmp[2];
-                    data[17] = tmp[3];
-                    data[18] = tmp[4];
-                    data[19] = tmp[5];
-                    data[20] = tmp[6];
-                    data[21] = tmp[7];
+                    data[16] = tmp[0];
+                    data[17] = tmp[1];
+                    data[18] = tmp[2];
+                    data[19] = tmp[3];
+                    data[20] = tmp[4];
+                    data[21] = tmp[5];
+                    data[22] = tmp[6];
+                    data[23] = tmp[7];
 
                     tmp = BitConverter.GetBytes(datetimeFileModified);
-                    data[22] = tmp[0];
-                    data[23] = tmp[1];
-                    data[24] = tmp[2];
-                    data[25] = tmp[3];
-                    data[26] = tmp[4];
-                    data[27] = tmp[5];
-                    data[28] = tmp[6];
-                    data[29] = tmp[7];
+                    data[24] = tmp[0];
+                    data[25] = tmp[1];
+                    data[26] = tmp[2];
+                    data[27] = tmp[3];
+                    data[28] = tmp[4];
+                    data[29] = tmp[5];
+                    data[30] = tmp[6];
+                    data[31] = tmp[7];
 
                     tmp = BitConverter.GetBytes(datetimeInodeModified);
-                    data[30] = tmp[0];
-                    data[31] = tmp[1];
-                    data[32] = tmp[2];
-                    data[33] = tmp[3];
-                    data[34] = tmp[4];
-                    data[35] = tmp[5];
-                    data[36] = tmp[6];
-                    data[37] = tmp[7];
+                    data[32] = tmp[0];
+                    data[33] = tmp[1];
+                    data[34] = tmp[2];
+                    data[35] = tmp[3];
+                    data[36] = tmp[4];
+                    data[37] = tmp[5];
+                    data[38] = tmp[6];
+                    data[39] = tmp[7];
 
                     tmp = BitConverter.GetBytes(firstClusterIndex);
-                    data[38] = tmp[0];
-                    data[39] = tmp[1];
+                    data[40] = tmp[0];
+                    data[41] = tmp[1];
+                    data[42] = tmp[2];
+                    data[43] = tmp[3];
 
                     return data;
                 }
 
-                public uint GetLength()
+                public static uint GetLength()
                 {
-                    return 40;
+                    return 44;
                 }
             }
 
@@ -254,16 +266,17 @@ namespace DFSformat
 
             public byte[] GetBytes()
             {
-                byte[] data = new byte[_inodes.Length * 40];
+                uint inodeLength = Inode.GetLength();
+                byte[] data = new byte[_inodes.Length * inodeLength];
                 byte[] tmp;
                 
                 for (int i = 0; i < _inodes.Length; i++)
                 {
                     tmp = _inodes[i].GetBytes();
 
-                    for (int j = 0; j < 40; j++)
+                    for (int j = 0; j < inodeLength; j++)
                     {
-                        data[i * 40 + j] = tmp[j];
+                        data[i * inodeLength + j] = tmp[j];
                     }
                 }
 
@@ -272,7 +285,7 @@ namespace DFSformat
 
             public uint GetLength()
             {
-                return (uint)_inodes.Length * 40;
+                return (uint)_inodes.Length * Inode.GetLength();
             }
         }
 
@@ -280,7 +293,7 @@ namespace DFSformat
         {
             public struct RootDirectoryRecord
             {
-                ushort fileInodeId;
+                uint fileInodeId;
                 char[] fileName;
                 char[] fileExtension;
 
@@ -299,29 +312,31 @@ namespace DFSformat
 
                 public byte[] GetBytes()
                 {
-                    byte[] data = new byte[22];
+                    byte[] data = new byte[GetLength()];
                     byte[] tmp;
 
                     tmp = BitConverter.GetBytes(fileInodeId);
                     data[0] = tmp[0];
                     data[1] = tmp[1];
+                    data[2] = tmp[2];
+                    data[3] = tmp[3];
 
-                    for (int i = 0; i < 15; i++)
+                    for (int i = 0; i < fileName.Length; i++)
                     {
-                        data[2 + i] = (byte)fileName[i];
+                        data[4 + i] = (byte)fileName[i];
                     }
 
-                    for (int i = 0; i < 5; i++)
+                    for (int i = 0; i < fileExtension.Length; i++)
                     {
-                        data[17 + i] = (byte)fileExtension[i];
+                        data[19 + i] = (byte)fileExtension[i];
                     }
 
                     return data;
                 }
 
-                public uint GetLength()
+                public static uint GetLength()
                 {
-                    return 22;
+                    return 24;
                 }
             }
 
@@ -330,18 +345,13 @@ namespace DFSformat
 
             public RootDirectory(uint clusterSize)
             {
-                _rootDirectory = new RootDirectoryRecord[clusterSize / 22];
-                _emptySpace = new byte[clusterSize - (clusterSize / 22) * 22];
+                _rootDirectory = new RootDirectoryRecord[clusterSize / RootDirectoryRecord.GetLength()];
+                _emptySpace = new byte[clusterSize - (clusterSize / RootDirectoryRecord.GetLength()) * RootDirectoryRecord.GetLength()];
 
                 for (int i = 0; i < _rootDirectory.Length; i++)
                 {
                     _rootDirectory[i] = new RootDirectoryRecord(FILE_NAME_LENGTH, FILE_EXTENSION_LENGTH);
                 }
-
-                //char[] fileName = new char[15];
-                //fileName
-                //char[] fileExtension = new char[5];
-                //_rootDirectory[0].SetFullFileName(fileName, fileExtension);
             }
 
             public RootDirectoryRecord this[byte rootDirectoryRecordIndex]
@@ -354,22 +364,22 @@ namespace DFSformat
 
             public byte[] GetBytes()
             {
-                byte[] data = new byte[_rootDirectory.Length * 22 + _emptySpace.Length];
+                byte[] data = new byte[_rootDirectory.Length * RootDirectoryRecord.GetLength() + _emptySpace.Length];
                 byte[] tmp;
 
                 for (int i = 0; i < _rootDirectory.Length; i++)
                 {
                     tmp = _rootDirectory[i].GetBytes();
 
-                    for (int j = 0; j < 22; j++)
+                    for (int j = 0; j < RootDirectoryRecord.GetLength(); j++)
                     {
-                        data[i * 22 + j] = tmp[j];
+                        data[i * RootDirectoryRecord.GetLength() + j] = tmp[j];
                     }
                 }
 
                 for (int i = 0; i < _emptySpace.Length; i++)
                 {
-                    data[_rootDirectory.Length * 22] = _emptySpace[i];
+                    data[_rootDirectory.Length * RootDirectoryRecord.GetLength()] = _emptySpace[i];
                 }
 
                 return data;
@@ -377,35 +387,37 @@ namespace DFSformat
 
             public uint GetLength()
             {
-                return (uint)(_rootDirectory.Length * 22 + _emptySpace.Length);
+                return (uint)(_rootDirectory.Length * RootDirectoryRecord.GetLength() + _emptySpace.Length);
             }
         }
 
         struct FileDataCluster
         {
-            // Номер следующего кластера данных файла. 0xFFFF для пометки текущего кластера последним.
-            ushort nextFileDataClusterIndex;
+            // Номер следующего кластера данных файла. 0xFFFFFFFF для пометки текущего кластера последним.
+            uint nextFileDataClusterIndex;
             // Массив данных кластера.
             char[] fileData;
 
             public FileDataCluster(ushort fileDataLength)
             {
-                nextFileDataClusterIndex = 0xFFFF;
+                nextFileDataClusterIndex = 0xFFFFFFFF;
                 fileData = new char[fileDataLength];
             }
 
             public byte[] GetBytes()
             {
-                byte[] data = new byte[fileData.Length + 2];
+                byte[] data = new byte[fileData.Length + 4];
                 byte[] tmp;
 
                 tmp = BitConverter.GetBytes(nextFileDataClusterIndex);
                 data[0] = tmp[0];
                 data[1] = tmp[1];
+                data[2] = tmp[2];
+                data[3] = tmp[3];
 
                 for (int i = 0; i < fileData.Length; i++)
                 {
-                    data[2 + i] = (byte)fileData[i];
+                    data[4 + i] = (byte)fileData[i];
                 }
 
                 return data;
@@ -413,7 +425,7 @@ namespace DFSformat
 
             public uint GetLength()
             {
-                return (uint)(fileData.Length + 2);
+                return (uint)(fileData.Length + 4);
             }
         }
 
@@ -421,53 +433,55 @@ namespace DFSformat
         {
             public struct DirectoryRecord
             {
-                ushort fileInodeId;
+                uint fileInodeId;
                 char[] fileName;
                 char[] fileExtension;
 
                 public DirectoryRecord(byte fileNameLength, byte fileExtensionLength)
                 {
-                    fileInodeId = 0xFFFF;
+                    fileInodeId = 0xFFFFFFFF;
                     fileName = new char[fileNameLength];
                     fileExtension = new char[fileExtensionLength];
                 }
 
                 public byte[] GetBytes()
                 {
-                    byte[] data = new byte[22];
+                    byte[] data = new byte[GetLength()];
                     byte[] tmp;
 
                     tmp = BitConverter.GetBytes(fileInodeId);
                     data[0] = tmp[0];
                     data[1] = tmp[1];
+                    data[2] = tmp[2];
+                    data[3] = tmp[3];
 
-                    for (int i = 0; i < 15; i++)
+                    for (int i = 0; i < fileName.Length; i++)
                     {
-                        data[2 + i] = (byte)fileName[i];
+                        data[4 + i] = (byte)fileName[i];
                     }
 
-                    for (int i = 0; i < 5; i++)
+                    for (int i = 0; i < fileExtension.Length; i++)
                     {
-                        data[17 + i] = (byte)fileExtension[i];
+                        data[19 + i] = (byte)fileExtension[i];
                     }
 
                     return data;
                 }
 
-                public uint GetLength()
+                public static uint GetLength()
                 {
-                    return 22;
+                    return 24;
                 }
             }
 
             // Номер следующего кластера данных файла. 0xFFFF для пометки текущего кластера последним.
-            ushort nextFileDataClusterIndex;
+            uint nextFileDataClusterIndex;
             // Записи каталога
             DirectoryRecord[] _directoryRecords;
 
             public DirectoryDataCluster(byte numDirectoryRecords)
             {
-                nextFileDataClusterIndex = 0xFFFF;
+                nextFileDataClusterIndex = 0xFFFFFFFF;
                 _directoryRecords = new DirectoryRecord[numDirectoryRecords];
 
                 for (int i = 0; i < _directoryRecords.Length; i++)
@@ -486,20 +500,22 @@ namespace DFSformat
 
             public byte[] GetBytes()
             {
-                byte[] data = new byte[2 + _directoryRecords.Length * 22];
+                byte[] data = new byte[4 + _directoryRecords.Length * DirectoryRecord.GetLength()];
                 byte[] tmp;
 
                 tmp = BitConverter.GetBytes(nextFileDataClusterIndex);
                 data[0] = tmp[0];
                 data[1] = tmp[1];
+                data[2] = tmp[2];
+                data[3] = tmp[3];
 
                 for (int i = 0; i < _directoryRecords.Length; i++)
                 {
                     tmp = _directoryRecords[i].GetBytes();
 
-                    for (int j = 0; j < 22; j++)
+                    for (int j = 0; j < DirectoryRecord.GetLength(); j++)
                     {
-                        data[2 + i * 22 + j] = tmp[j];
+                        data[4 + i * DirectoryRecord.GetLength() + j] = tmp[j];
                     }
                 }
 
@@ -508,7 +524,7 @@ namespace DFSformat
 
             public uint GetLength()
             {
-                return (uint)(2 + _directoryRecords.Length * 22);
+                return (uint)(4 + _directoryRecords.Length * DirectoryRecord.GetLength());
             }
         }
 
@@ -555,7 +571,7 @@ namespace DFSformat
                 numFreeInode = (ushort)(_diskPartitionSize / _diskClusterSize)
             };
 
-            emptyData = new byte[_diskPartitionSize - _superblock.GetLength() - _bitMap.GetLength() - _inodes.GetLength() - _rootDirectory.GetLength()];
+            emptyData = new byte[_diskPartitionSize - Superblock.GetLength() - _bitMap.GetLength() - _inodes.GetLength() - _rootDirectory.GetLength()];
 
             _superblock.SetNumFreeClusters((ushort)(emptyData.Length / _diskClusterSize));
         }
@@ -568,7 +584,7 @@ namespace DFSformat
 
             bw.Write(free);
 
-            int offset = (int)_inodes[0].GetLength();
+            int offset = (int)Inodes.Inode.GetLength();
             int inodesLength = (int)_inodes.GetLength();
 
             for (int i = 1; i < inodesLength; i++)
