@@ -19,9 +19,9 @@ namespace DFSformat
             gcHandle.Free();
         }
 
-        public static ulong GetTimestamp()
+        public static long GetTimestamp()
         {
-            return (ulong)DateTime.UtcNow.ToFileTimeUtc();
+            return DateTime.UtcNow.ToFileTimeUtc();
         }
     }
 }

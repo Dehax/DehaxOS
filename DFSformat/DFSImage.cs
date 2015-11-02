@@ -301,15 +301,15 @@ namespace DFSformat
                 /// <summary>
                 /// Время и дата создания файла.
                 /// </summary>
-                public ulong datetimeFileCreated;
+                public long datetimeFileCreated;
                 /// <summary>
                 /// Время и дата последнего изменения файла.
                 /// </summary>
-                public ulong datetimeFileModified;
+                public long datetimeFileModified;
                 /// <summary>
                 /// Время и дата последнего изменения индексного дескриптора файла.
                 /// </summary>
-                public ulong datetimeInodeModified;
+                public long datetimeInodeModified;
                 /// <summary>
                 /// Номер первого блока данных файла.
                 /// </summary>
