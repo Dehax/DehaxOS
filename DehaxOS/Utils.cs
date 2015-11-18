@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -79,7 +80,14 @@ namespace DehaxOS
         /// <returns></returns>
         public static string GetExtension(string path)
         {
-            return Path.GetExtension(path).Substring(1);
+            string extension = Path.GetExtension(path);
+
+            if (!string.IsNullOrEmpty(extension))
+            {
+                return extension.Substring(1);
+            }
+
+            return extension;
         }
 
         /// <summary>
@@ -182,8 +190,34 @@ namespace DehaxOS
             AccessRights.RightsGroup result = new AccessRights.RightsGroup();
 
             // TODO: Дописать проверку прав доступа.
+            result.canRead = true;
+            result.canWrite = true;
+            result.canExecute = true;
 
             return result;
+        }
+
+        public static byte[] GetPasswordHash(string password)
+        {
+            using (MD5 md5 = MD5.Create())
+            {
+                return md5.ComputeHash(Encoding.ASCII.GetBytes(password));
+            }
+        }
+
+        public static string ByteArrayToHexString(byte[] data)
+        {
+            return BitConverter.ToString(data).Replace("-", string.Empty);
+        }
+
+        public static byte[] HexStringToByteArray(string hex)
+        {
+            int NumberChars = hex.Length;
+            byte[] bytes = new byte[NumberChars / 2];
+            for (int i = 0; i < NumberChars; i += 2)
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+
+            return bytes;
         }
     }
 }

@@ -999,7 +999,8 @@ namespace DehaxOS.FileSystem
             // Корневой каталог
             if (path == "/" || directoriesNames.Length == 0)
             {
-                return _rootDirectory;
+                //return _rootDirectory;
+                return ReadDirectoryClusters(0, null, true);
             }
 
             Directory directory = _rootDirectory;
@@ -1032,10 +1033,23 @@ namespace DehaxOS.FileSystem
         /// <summary>
         /// Считывает указанное количество байт содержимого файла, начиная с определённой позиции.
         /// </summary>
-        /// <param name="fileName">Имя файла в текущем каталоге, содержимое которого необходимо прочитать.</param>
+        /// <param name="path">Путь к файлу, содержимое которого необходимо прочитать.</param>
         /// <returns>Возвращает массив байтов в соответствии с заданными параметрами.</returns>
-        public byte[] ReadFile(string fileName, int offset = 0, int count = -1)
+        public byte[] ReadFile(string path, int offset = 0, int count = -1)
         {
+            Utils.CheckPath(path);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
+            string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
+            string fileName = Utils.GetFileName(fullPath);
+            string fileNameWithoutExtension = Utils.GetFileNameWithoutExtension(fullPath);
+            string fileExtension = Utils.GetExtension(fullPath);
+
+            // TODO: Каждый раз начинает поиск метафайла с корневого каталога, даже если передан относительный путь.
+            Directory backupDirectory = CurrentDirectory;
+            CurrentDirectory = _rootDirectory;
+
+            CurrentDirectory = OpenDirectory(parentDirectoryPath);
+
             File file = new File();
 
             MetaFile metaFile = CurrentDirectory.Find(fileName);
@@ -1093,13 +1107,33 @@ namespace DehaxOS.FileSystem
                 }
             }
 
+            CurrentDirectory = backupDirectory;
+
             return data;
         }
-
-        public int WriteFile(string fileName, byte[] data)
+        
+        /// <summary>
+        /// Записывает массив байтов в файл, переписывая его содержимое.
+        /// </summary>
+        /// <param name="path">Путь к файлу.</param>
+        /// <param name="data">Массив байтов.</param>
+        /// <returns></returns>
+        public int WriteFile(string path, byte[] data)
         {
-            File file = new File();
+            Utils.CheckPath(path);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
+            string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
+            string fileName = Utils.GetFileName(fullPath);
+            string fileNameWithoutExtension = Utils.GetFileNameWithoutExtension(fullPath);
+            string fileExtension = Utils.GetExtension(fullPath);
 
+            // TODO: Каждый раз начинает поиск метафайла с корневого каталога, даже если передан относительный путь.
+            Directory backupDirectory = CurrentDirectory;
+            CurrentDirectory = _rootDirectory;
+
+            CurrentDirectory = OpenDirectory(parentDirectoryPath);
+
+            File file = new File();
             MetaFile metaFile = CurrentDirectory.Find(fileName);
             file = metaFile as File;
 
@@ -1178,6 +1212,8 @@ namespace DehaxOS.FileSystem
             WriteStruct(FileStream, inode);
 
             FlushAll();
+
+            CurrentDirectory = backupDirectory;
 
             return numberWrittenBytes;
         }
@@ -1328,7 +1364,7 @@ namespace DehaxOS.FileSystem
             }
 
             string fileName = Utils.GetFileName(path);
-            MetaFile metaFile = directory.Find(path);
+            MetaFile metaFile = directory.Find(fileName);
 
             if (metaFile == null)
             {
@@ -1342,6 +1378,8 @@ namespace DehaxOS.FileSystem
             inode.attributes = attributes.ToByte();
             FileStream.Seek(-sizeOfInode, SeekOrigin.Current);
             WriteStruct(FileStream, inode);
+
+            FlushAll(false);
 
             CurrentDirectory = current;
         }
@@ -1366,7 +1404,7 @@ namespace DehaxOS.FileSystem
             }
 
             string fileName = Utils.GetFileName(path);
-            MetaFile metaFile = directory.Find(path);
+            MetaFile metaFile = directory.Find(fileName);
 
             if (metaFile == null)
             {

@@ -10,15 +10,11 @@ using System.Windows.Forms;
 
 namespace DehaxOS
 {
-    public partial class MainForm : Form
+    public partial class LoginForm : Form
     {
-        private DehaxOS _dehaxOS;
-
-        public MainForm()
+        public LoginForm()
         {
             InitializeComponent();
-
-            _dehaxOS = new DehaxOS();
         }
     }
 }
