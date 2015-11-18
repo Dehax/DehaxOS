@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -24,7 +25,6 @@ namespace DehaxOS
             string imageFilePath = @"C:\Users\Dehax\OneDrive\Documents\DonNTU\OS\Project\DehaxOS\image.dfs";
             int bufferSize = 512;
             DehaxFileSystem dfs = new DehaxFileSystem(new FileStream(imageFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, bufferSize, FileOptions.RandomAccess), 1, 1);
-            dfs.CreateFile("first.img");
         }
     }
 }

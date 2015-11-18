@@ -36,7 +36,7 @@ namespace DFSformat
 
         private void writeButton_Click(object sender, EventArgs e)
         {
-            DFSImage dfsImage = new DFSImage((ulong)partitionSizeNumericUpDown.Value * 1024 * 1024, Convert.ToByte(clusterSizeComboBox.SelectedIndex + 1));
+            DFSImage dfsImage = new DFSImage((long)partitionSizeNumericUpDown.Value * 1024 * 1024, Convert.ToByte(clusterSizeComboBox.SelectedIndex + 1));
 
             try
             {

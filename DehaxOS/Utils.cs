@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DehaxOS.FileSystem;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,6 +20,11 @@ namespace DehaxOS
             if (fullPath && path[0] != '/')
             {
                 throw new ArgumentException("Путь не является полным (абсолютным)!", nameof(path));
+            }
+
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentNullException(nameof(path), "Неверно задан путь!");
             }
 
             if (path == "/")
@@ -73,7 +79,7 @@ namespace DehaxOS
         /// <returns></returns>
         public static string GetExtension(string path)
         {
-            return Path.GetExtension(path);
+            return Path.GetExtension(path).Substring(1);
         }
 
         /// <summary>
@@ -83,15 +89,18 @@ namespace DehaxOS
         /// <returns>Имя каталога, содержащего файл.</returns>
         public static string GetDirectoryName(string path)
         {
-            return Path.GetDirectoryName(path);
+            string directoryName = Path.GetDirectoryName(path);
+            directoryName = directoryName.Replace("\\", "/");
+            return directoryName/* == "\\" ? "/" : directoryName*/;
         }
 
         /// <summary>
-        /// Возвращает массив имён каталогов, предшествующих заданному в пути файлу или каталогу.
+        /// Возвращает массив имён каталогов, предшествующих заданному в пути файлу или каталогу либо включая его.
         /// </summary>
         /// <param name="fullPath">Полный путь к файлу или каталогу</param>
-        /// <returns></returns>
-        public static string[] GetDirectoriesNames(string fullPath)
+        /// <param name="includeLastName">Включать ли в массив имён каталогов последнее имя в пути.</param>
+        /// <returns>массив имён каталогов в заданном пути.</returns>
+        public static string[] GetDirectoriesNames(string fullPath, bool includeLastName = false)
         {
             CheckPath(fullPath, true);
 
@@ -99,7 +108,7 @@ namespace DehaxOS
 
             string[] directoriesNames = fullPath.Split('/');
 
-            string[] result = new string[directoriesNames.Length - 1];
+            string[] result = new string[directoriesNames.Length - (includeLastName ? 0 : 1)];
 
             for (int i = 0; i < result.Length; i++)
             {
@@ -118,7 +127,7 @@ namespace DehaxOS
         public static string GetFullPath(string path, string currentPath)
         {
             CheckPath(path);
-            CheckPath(currentPath);
+            //CheckPath(currentPath, true);
 
             if (path[0] == '/')
             {
@@ -150,6 +159,31 @@ namespace DehaxOS
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Возвращает текущее время время UTC в формате UNIX (FILE).
+        /// </summary>
+        /// <returns>текущее время время UTC в формате UNIX (FILE)</returns>
+        public static long GetTimestamp()
+        {
+            return DateTime.UtcNow.ToFileTimeUtc();
+        }
+
+        /// <summary>
+        /// Проверяет права доступа к объекту файловой системы.
+        /// </summary>
+        /// <param name="userId">ID текущего пользователя в системе.</param>
+        /// <param name="groupId">ID группы текущего пользователя в системе.</param>
+        /// <param name="accessRights">Права доступа к объекту.</param>
+        /// <returns>набор разрешений на чтение/запись/исполнение.</returns>
+        public static AccessRights.RightsGroup CanAccess(short userId, short groupId, AccessRights accessRights)
+        {
+            AccessRights.RightsGroup result = new AccessRights.RightsGroup();
+
+            // TODO: Дописать проверку прав доступа.
+
+            return result;
         }
     }
 }

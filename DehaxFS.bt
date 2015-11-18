@@ -1,0 +1,255 @@
+//--------------------------------------
+//--- 010 Editor v6.0.3 Binary Template
+//
+// File:     Dehax file system
+// Author:   Dehax
+// Revision: 0.1
+// Purpose:  For debugging Dehax file
+//           system module and DehaxOS
+//           operating system.
+//--------------------------------------
+#define SECTOR_SIZE 512
+
+enum <byte> ClusterState
+{
+    FREE = 0, BAD1 = 1, BAD2 = 2, USED = 3
+};
+
+enum <byte> FileType
+{
+    FILE = 1, DIRECTORY = 2, FREE_INODE = -1
+};
+
+struct _accessRights
+{
+    //struct _accessRightsGroup
+    //{
+    //    byte canRead : 1;
+    //    byte canWrite : 1;
+    //    byte canExecute : 1;
+    //};
+    BitfieldLeftToRight();
+    
+    short : 7;
+    short userCanRead : 1 <name="User Read">;
+    short userCanWrite : 1 <name="User Write">;
+    short userCanExecute : 1 <name="User Execute">;
+    short groupCanRead : 1 <name="Group Read">;
+    short groupCanWrite : 1 <name="Group Write">;
+    short groupCanExecute : 1 <name="Group Execute">;
+    short othersCanRead : 1 <name="Others Read">;
+    short othersCanWrite : 1 <name="Others Write">;
+    short othersCanExecute : 1 <name="Others Execute">;
+    //_accessRightsGroup user;
+    //_accessRightsGroup group;
+    //_accessRightsGroup others;
+};
+
+struct _attributes
+{
+    byte : 5;
+    byte hidden : 1;
+    byte system : 1;
+    byte readOnly : 1;
+};
+
+struct _directoryRecord
+{
+    int inodeId;
+    char fileName[15];
+    char fileExtension[5];
+};
+//--------------------------------------
+struct _superblock
+{
+    byte fileSystemType <format=hex, name="Type",                   comment="File system ID">;
+    int  dataClustersCount          <name="Data clusters",          comment="Number of data clusters">;
+    byte clusterFactor              <name="Cluster factor",         comment=clusterSizeComment>;
+    int  inodesArraySize            <name="Inodes array size",      comment="Size of inodes array">;
+    int  bitMapSize                 <name="BitMap size",            comment="Size of BitMap free/used clusters">;
+    int  freeDataClustersCount      <name="Free data clusters",     comment="Number of free data clusters">;
+    int  freeInodesCount            <name="Free inodes",            comment="Number of free inodes">;
+    int  rootDirectoryAddress       <name="Root directory address", comment="Address of root directory">;
+    int  bitMapAddress              <name="BitMap address",         comment="Address of BitMap">;
+    int  dataClustersAddress        <name="Data clusters address",  comment="Address of data clusters">;
+    int  inodesArrayAddress         <name="Inodes array address",   comment="Address of inodes array">;
+} superblock <read=superblockRead, name="Superblock", comment="Superblock structure of file system", bgcolor=cPurple>;
+
+struct _bitMap
+{
+    //BitfieldLeftToRight();
+    local int i;
+    for (i = 0; i < superblock.bitMapSize * 4; i++)
+        ClusterState clustersMap : 2 <name="Cluster state", comment="Current state of data cluster">;
+} bitMap </*read=bitMapRead, */name="BitMap", comment="BitMap structure of free/used data clusters", bgcolor=cYellow>;
+
+//struct _inodesArray
+//{
+    struct _inode
+    {
+        FileType fileType <name="File type", comment="Type of meta file in directory">;
+        int inodeId <name="Inode ID", comment="ID of inode">;
+        short userId <name="User ID", comment="ID of current user in OS">;
+        short groupId <name="Group ID", comment="ID of group of user in OS">;
+        _accessRights accessRights <read=accessRightsRead, name="Access rights", comment="Bit fields of access rights">;
+        _attributes attributes <read=attributesRead, name="Attributes", comment="Attributes">;
+        int fileSize <name="File size", comment="Size of file or cluster size if this is directory">;
+        FILETIME fileCreationDateTime <name="File creation date/time", comment="UTC UNIX-time file creation">;
+        FILETIME fileModificationDateTime <name="File modification date/time", comment="UTC UNIX-time file modification">;
+        FILETIME inodeModificationDateTime <name="Inode modification date/time", comment="UTC UNIX-time inode modification">;
+        int firstDataClusterIndex <name="Index of first data cluster", comment="Indexes starts from 1">;
+    } inodes[superblock.bitMapSize * 4] <read=inodesRead, name="Inodes", comment="Inodes array", bgcolor=cGreen>;
+//} inodesArray <read=inodesArrayRead, name="Inodes array", comment="Inodes array structure">;
+
+struct _rootDirectory
+{
+    int reserved <name="Reserved", comment="Reserved field for making root cluster similar to normal directory cluster">;
+    _directoryRecord metaFiles[(superblock.clusterFactor * SECTOR_SIZE - sizeof(reserved)) / sizeof(_directoryRecord)] <read=metaFilesRead, name="Meta files", comment="Directory records: files or directories">;
+    byte free[superblock.clusterFactor * SECTOR_SIZE - sizeof(reserved) - sizeof(metaFiles)] <name="Free space", comment="Padding space up to cluster size">;
+} rootDirectory <name="Root directory", comment="Root directory", bgcolor=cLtRed>;
+
+struct _dataCluster
+{
+    int nextDataClusterIndex <name="Next data cluster", comment="Next data cluster index">;
+    byte data[superblock.clusterFactor * SECTOR_SIZE - sizeof(nextDataClusterIndex)] <name="Data", comment="Cluster data">;
+} dataCluster[8] <name="First data cluster", comment="First data cluster", bgcolor=cSilver>;
+
+//struct _dataClusters
+//{
+//    _directoryRecord 
+//} dataClusters;
+//--------------------------------------
+string superblockRead(_superblock &superblock)
+{
+    string s;
+    SPrintf(s, "%d/%d, %d %% free", superblock.freeDataClustersCount, superblock.dataClustersCount, superblock.freeDataClustersCount * 100 / superblock.dataClustersCount);
+    return s;
+}
+
+/*string bitMapRead(_bitMap &bitMap)
+{
+    string s = "TODO: bitMapRead(_bitMap)";
+    return s;
+}*/
+
+//string inodesArrayRead(_inodesArray &inodesArray)
+//{
+//    string s = "TODO: inodesArrayRead(_inodesArray)";
+//    return s;
+//}
+
+string accessRightsRead(_accessRights &accessRights)
+{
+    string s = "[";
+
+    if (accessRights.userCanRead) {
+        s += "r";
+    } else {
+        s += "-";
+    }
+    if (accessRights.userCanWrite) {
+        s += "w";
+    } else {
+        s += "-";
+    }
+    if (accessRights.userCanExecute) {
+        s += "x";
+    } else {
+        s += "-";
+    }
+    s += "|";
+    if (accessRights.groupCanRead) {
+        s += "r";
+    } else {
+        s += "-";
+    }
+    if (accessRights.groupCanWrite) {
+        s += "w";
+    } else {
+        s += "-";
+    }
+    if (accessRights.groupCanExecute) {
+        s += "x";
+    } else {
+        s += "-";
+    }
+    s += "|";
+    if (accessRights.othersCanRead) {
+        s += "r";
+    } else {
+        s += "-";
+    }
+    if (accessRights.othersCanWrite) {
+        s += "w";
+    } else {
+        s += "-";
+    }
+    if (accessRights.othersCanExecute) {
+        s += "x";
+    } else {
+        s += "-";
+    }
+    s += "]";
+
+    return s;
+}
+
+string attributesRead(_attributes &attributes)
+{
+    string s = "";
+    
+    if (attributes.hidden)
+        s += "hidden";
+    else
+        s += "------";
+    s += " | ";
+    if (attributes.system)
+        s += "system";
+    else
+        s += "------";
+    s += " | ";
+    if (attributes.readOnly)
+        s += "readOnly";
+    else
+        s += "--------";
+
+    return s;
+}
+
+string metaFilesRead(_directoryRecord &directoryRecord)
+{
+    string s;
+    string delimiter = "";
+    if (Strlen(directoryRecord.fileExtension) > 0)
+        delimiter = ".";
+    
+    SPrintf(s, "[%d] %s%s%s", directoryRecord.inodeId, directoryRecord.fileName, delimiter, directoryRecord.fileExtension);
+
+    return s;
+}
+
+string inodesRead(_inode &inode)
+{
+    string s;
+    
+    if (inode.fileType == FILE) {
+        string tmp;
+        SPrintf(tmp, ", %d bytes", inode.fileSize);
+        s = "FILE" + tmp;
+    } else if (inode.fileType == DIRECTORY) {
+        s = "DIRECTORY";
+    } else if (inode.fileType == FREE_INODE) {
+        s = "FREE";
+    } else {
+        s = "ERROR! Corrupted!";
+    }
+
+    return s;
+}
+
+string clusterSizeComment(byte factor)
+{
+    string s;
+    SPrintf(s, "Cluster size = %d", factor * SECTOR_SIZE);
+    return s;
+}

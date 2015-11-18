@@ -37,7 +37,7 @@ namespace DehaxOS.FileSystem
             others.canExecute = ox;
         }
 
-        public AccessRights(ushort permissions)
+        public AccessRights(short permissions)
             : this((permissions & (1 << 8)) > 0,
                    (permissions & (1 << 7)) > 0,
                    (permissions & (1 << 6)) > 0,
@@ -74,17 +74,17 @@ namespace DehaxOS.FileSystem
             }
         }
 
-        public ushort ToUInt16()
+        public short ToInt16()
         {
-            return (ushort)((user.canRead ? 1 : 0 << 8) |
-                            (user.canWrite ? 1 : 0 << 7) |
-                            (user.canExecute ? 1 : 0 << 6) |
-                            (group.canRead ? 1 : 0 << 5) |
-                            (group.canWrite ? 1 : 0 << 4) |
-                            (group.canExecute ? 1 : 0 << 3) |
-                            (others.canRead ? 1 : 0 << 2) |
-                            (others.canWrite ? 1 : 0 << 1) |
-                            (others.canExecute ? 1 : 0 << 0));
+            return (short)(((user.canRead ? 1 : 0) << 8) |
+                           ((user.canWrite ? 1 : 0) << 7) |
+                           ((user.canExecute ? 1 : 0) << 6) |
+                          ((group.canRead ? 1 : 0) << 5) |
+                          ((group.canWrite ? 1 : 0) << 4) |
+                          ((group.canExecute ? 1 : 0) << 3) |
+                         ((others.canRead ? 1 : 0) << 2) |
+                         ((others.canWrite ? 1 : 0) << 1) |
+                         ((others.canExecute ? 1 : 0) << 0));
         }
     }
 
@@ -103,9 +103,9 @@ namespace DehaxOS.FileSystem
 
         public byte ToByte()
         {
-            return (byte)((hidden ? 1 : 0 << 2) |
-                          (system ? 1 : 0 << 1) |
-                          (readOnly ? 1 : 0 << 0));
+            return (byte)(((hidden ? 1 : 0) << 2) |
+                          ((system ? 1 : 0) << 1) |
+                          ((readOnly ? 1 : 0) << 0));
         }
     }
 
@@ -115,7 +115,7 @@ namespace DehaxOS.FileSystem
         /// <summary>
         /// Количество байт, занимаемых одним сектором жёсткого диска.
         /// </summary>
-        private const ushort DISK_BYTES_PER_SECTOR = 512;
+        private const short DISK_BYTES_PER_SECTOR = 512;
         /// <summary>
         /// Код типа файловой системы.
         /// </summary>
@@ -131,7 +131,7 @@ namespace DehaxOS.FileSystem
         /// <summary>
         /// Значение свободной записи каталога.
         /// </summary>
-        private const uint FREE_DIRECTORY_RECORD = 0xFFFFFFFF;
+        private const int FREE_DIRECTORY_RECORD = -1;
         /// <summary>
         /// Значение свободного индексного дескриптора.
         /// </summary>
@@ -147,7 +147,7 @@ namespace DehaxOS.FileSystem
         /// <summary>
         /// Значение, указывающее на последний кластер данных.
         /// </summary>
-        private const uint LAST_CLUSTER_ID = 0xFFFFFFFF;
+        private const int LAST_CLUSTER_ID = -1;
         /// <summary>
         /// Значение типа файла в поле "Тип файла" индексного дескриптора.
         /// </summary>
@@ -172,7 +172,7 @@ namespace DehaxOS.FileSystem
             /// <summary>
             /// Количество кластеров (блоков данных).
             /// </summary>
-            public uint numClusters;
+            public int numClusters;
             /// <summary>
             /// Размер кластера (логического блока), множитель секторов:
             /// • 1 * 512 (размер сектора) = 512 байт;
@@ -182,42 +182,42 @@ namespace DehaxOS.FileSystem
             /// <summary>
             /// Размер массива индексных дескрипторов (inode).
             /// </summary>
-            public uint inodeArraySize;
+            public int inodeArraySize;
             /// <summary>
             /// Размер битовой карты свободных/занятых кластеров.
             /// </summary>
-            public uint bitMapSize;
+            public int bitMapSize;
             /// <summary>
             /// Количество свободных кластеров.
             /// </summary>
-            public uint numFreeClusters;
+            public int numFreeClusters;
             /// <summary>
             /// Количество свободных индексных дескрипторов (inode).
             /// </summary>
-            public uint numFreeInode;
+            public int numFreeInode;
 
             /// <summary>
             /// Адрес секции корневого каталога.
             /// </summary>
-            public uint rootAddress;
+            public int rootAddress;
             /// <summary>
             /// Адрес секции битовой карты.
             /// </summary>
-            public uint bitMapAddress;
+            public int bitMapAddress;
             /// <summary>
             /// Адрес секции блоков данных.
             /// </summary>
-            public uint dataAddress;
+            public int dataAddress;
             /// <summary>
             /// Адрес секции массива индексных дескрипторов.
             /// </summary>
-            public uint inodeArrayAddress;
+            public int inodeArrayAddress;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
         public struct DirectoryRecord
         {
-            public uint fileInodeId;
+            public int fileInodeId;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = FILE_NAME_LENGTH)]
             public string fileName;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = FILE_EXTENSION_LENGTH)]
@@ -234,19 +234,19 @@ namespace DehaxOS.FileSystem
             /// <summary>
             /// Код индексного дескриптора.
             /// </summary>
-            public uint inodeId;
+            public int inodeId;
             /// <summary>
             /// Код пользователя-владельца (создателя) файла.
             /// </summary>
-            public ushort userId;
+            public short userId;
             /// <summary>
             /// Код группы-владельца (создателя) файла.
             /// </summary>
-            public ushort groupId;
+            public short groupId;
             /// <summary>
             /// Права доступа к файлу — набор бит [rwx|rwx|rwx].
             /// </summary>
-            public ushort permissions;
+            public short permissions;
             /// <summary>
             /// Атрибуты файла — набор битов.
             /// </summary>
@@ -254,7 +254,7 @@ namespace DehaxOS.FileSystem
             /// <summary>
             /// Размер файла в байтах.
             /// </summary>
-            public uint fileSize;
+            public int fileSize;
             /// <summary>
             /// Время и дата создания файла.
             /// </summary>
@@ -270,7 +270,7 @@ namespace DehaxOS.FileSystem
             /// <summary>
             /// Номер первого блока данных файла.
             /// </summary>
-            public uint firstClusterIndex;
+            public int firstClusterIndex;
         }
 
         /// <summary>
@@ -303,9 +303,9 @@ namespace DehaxOS.FileSystem
 
             BitArray _bits;
 
-            public BitMap(uint bitmapNumClusters)
+            public BitMap(int bitmapNumClusters)
             {
-                _bits = new BitArray((int)bitmapNumClusters * 2);
+                _bits = new BitArray(bitmapNumClusters * 2);
             }
 
             public BitMap(byte[] data)
@@ -320,13 +320,13 @@ namespace DehaxOS.FileSystem
             /// <returns>номер свободного блока данных, нумерация с 1</returns>
             public int FindFirstFreeCluster(bool reserveCluster = false)
             {
-                for (int i = 0; i < _bits.Length / 2; i++)
+                for (int i = 1; i < _bits.Length / 2 + 1; i++)
                 {
-                    if (this[(uint)i] == ClusterState.Free)
+                    if (this[i] == ClusterState.Free)
                     {
                         if (reserveCluster)
                         {
-                            SetClusterState((uint)i, ClusterState.Used);
+                            SetClusterState(i, ClusterState.Used);
                         }
 
                         return i;
@@ -336,11 +336,17 @@ namespace DehaxOS.FileSystem
                 return -1;
             }
 
-            public ClusterState this[uint clusterIndex]
+            /// <summary>
+            /// Возвращает состояние блока данных.
+            /// </summary>
+            /// <param name="clusterIndex">Индекс блока данных, начиная с 1, состояние которого необходимо получить.</param>
+            /// <returns>состояние блока данных.</returns>
+            public ClusterState this[int clusterIndex]
             {
                 get
                 {
-                    int firstBitIndex = (int)(clusterIndex * 2);
+                    clusterIndex--;
+                    int firstBitIndex = clusterIndex * 2;
                     bool firstBit = _bits[firstBitIndex];
                     bool secondBit = _bits[firstBitIndex + 1];
 
@@ -348,9 +354,16 @@ namespace DehaxOS.FileSystem
                 }
             }
 
-            public byte SetClusterState(uint clusterIndex, ClusterState state)
+            /// <summary>
+            /// Устанавливает состояние блока данных в битовой карте.
+            /// </summary>
+            /// <param name="clusterIndex">Индекс блока данных, начиная с 1.</param>
+            /// <param name="state">Состояние, которое будет установлено для указанного блока данных.</param>
+            /// <returns>Состояние, установленное для указанного блока данных.</returns>
+            public byte SetClusterState(int clusterIndex, ClusterState state)
             {
-                int firstBitIndex = (int)(clusterIndex * 2);
+                clusterIndex--;
+                int firstBitIndex = clusterIndex * 2;
 
                 bool firstBit;
                 bool secondBit;
@@ -397,7 +410,7 @@ namespace DehaxOS.FileSystem
                 for (int i = 0; i < _bits.Count; i++)
                 {
                     if (_bits[i])
-                        bytes[byteIndex] |= (byte)(1 << (7 - bitIndex));
+                        bytes[byteIndex] |= (byte)(1 << (/*7 - */bitIndex));
 
                     bitIndex++;
                     if (bitIndex == 8)
@@ -410,27 +423,29 @@ namespace DehaxOS.FileSystem
                 return bytes;
             }
 
-            public uint GetLength()
+            public int GetLength()
             {
-                return (uint)_bits.Length / 8;
+                return _bits.Length / 8;
             }
         }
 
         #endregion
 
+        #region Переменные класса
         private FileStream FileStream { get; set; }
         private Superblock _superblock;
         private BitMap _bitMap;
 
-        public ushort UserId { get; set; }
-        public ushort GroupId { get; set; }
+        public short UserId { get; set; }
+        public short GroupId { get; set; }
 
         public int CLUSTER_SIZE;
 
         //private bool _isFileOrDirectoryOpened = false;
-        private string _openedPath;
+        //private string _openedPath;
         private Directory _currentDirectory;
         private Directory _rootDirectory;
+        #endregion
 
         public bool CanCreateInode
         {
@@ -467,7 +482,7 @@ namespace DehaxOS.FileSystem
         /// <param name="fileStream">Поток файла-образа диска с файловой системой.</param>
         /// <param name="userId">ID пользователя в системе, который будет обращаться в файловой системе.</param>
         /// <param name="groupId">ID группы пользователей, в которой состоит текущий пользователь.</param>
-        public DehaxFileSystem(FileStream fileStream, ushort userId, ushort groupId)
+        public DehaxFileSystem(FileStream fileStream, short userId, short groupId)
         {
             FileStream = fileStream;
             UserId = userId;
@@ -477,7 +492,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// Выполняет инициализацию структур файловой системы.
+        /// [+] Выполняет инициализацию структур файловой системы.
         /// </summary>
         private void Initialize()
         {
@@ -493,12 +508,21 @@ namespace DehaxOS.FileSystem
                 throw new InvalidDataException("Неизвестный тип файлово системы! Возможно, диск был повреждён.");
             }
 
-            _rootDirectory = ReadDirectoryClusters(0, true);
+            _rootDirectory = ReadDirectoryClusters(0, null, true);
             CurrentDirectory = _rootDirectory;
-            _openedPath = "/";
+            //_openedPath = "/";
         }
 
-        private void FlushNewFile(string fileName, string fileExtension, int freeDirectoryRecordAddress, int freeInodeAddress, uint freeInodeId, int freeDataClusterIndex)
+        /// <summary>
+        /// [+] Записывает информацию о новом созданном файле на диск.
+        /// </summary>
+        /// <param name="fileName">Имя файла.</param>
+        /// <param name="fileExtension">Расширение файла.</param>
+        /// <param name="freeDirectoryRecordAddress">Адрес свободной записи в родительском каталоге.</param>
+        /// <param name="freeInodeAddress">Адрес свободного индексного дескриптора.</param>
+        /// <param name="freeInodeId">ID свободного индексного дескриптора.</param>
+        /// <param name="freeDataClusterIndex">Индекс свободного блока данных.</param>
+        private void FlushNewFile(string fileName, string fileExtension, int freeDirectoryRecordAddress, int freeInodeAddress, int freeInodeId, int freeDataClusterIndex)
         {
             DirectoryRecord newDirectoryRecord = new DirectoryRecord();
             newDirectoryRecord.fileName = fileName;
@@ -510,17 +534,17 @@ namespace DehaxOS.FileSystem
             newFileInode.inodeId = freeInodeId;
             newFileInode.userId = UserId;
             newFileInode.groupId = GroupId;
-            newFileInode.permissions = new AccessRights(true, true, true, true, false, true, true, false, true).ToUInt16();
+            newFileInode.permissions = new AccessRights(true, true, true, true, false, true, true, false, true).ToInt16();
             Attributes attributes = new Attributes();
             attributes.hidden = false;
             attributes.readOnly = false;
             attributes.system = false;
             newFileInode.attributes = attributes.ToByte();
-            newFileInode.fileSize = (uint)(_superblock.clusterFactor * DISK_BYTES_PER_SECTOR);
-            newFileInode.datetimeFileCreated = DateTime.UtcNow.Ticks;
-            newFileInode.datetimeFileModified = DateTime.UtcNow.Ticks;
-            newFileInode.datetimeInodeModified = DateTime.UtcNow.Ticks;
-            newFileInode.firstClusterIndex = (uint)freeDataClusterIndex;
+            newFileInode.fileSize = 0;
+            newFileInode.datetimeFileCreated = Utils.GetTimestamp();
+            newFileInode.datetimeFileModified = Utils.GetTimestamp();
+            newFileInode.datetimeInodeModified = Utils.GetTimestamp();
+            newFileInode.firstClusterIndex = freeDataClusterIndex;
 
             FileStream.Seek(freeDirectoryRecordAddress, SeekOrigin.Begin);
             WriteStruct(FileStream, newDirectoryRecord);
@@ -529,10 +553,19 @@ namespace DehaxOS.FileSystem
             FileStream.Seek(_superblock.dataAddress + (freeDataClusterIndex - 1) * CLUSTER_SIZE, SeekOrigin.Begin);
 
             // Записать один кластер файла
-            FileStream.Write(BitConverter.GetBytes(LAST_CLUSTER_ID), 0, sizeof(uint));
+            FileStream.Write(BitConverter.GetBytes(LAST_CLUSTER_ID), 0, sizeof(int));
         }
 
-        private void FlushNewDirectory(string direcoryName, int freeDirectoryRecordAddress, int freeInodeAddress, uint freeInodeId, uint parentInodeId, int freeDataClusterIndex)
+        /// <summary>
+        /// [+] Записывает информацию о новом созданном каталоге на диск.
+        /// </summary>
+        /// <param name="direcoryName">Имя каталога.</param>
+        /// <param name="freeDirectoryRecordAddress">Адрес свободной записи в родительском каталоге.</param>
+        /// <param name="freeInodeAddress">Адрес свободного индексного дескриптора.</param>
+        /// <param name="freeInodeId">ID свободного индексного дескриптора.</param>
+        /// <param name="parentInodeId">ID индексного дескриптора родительского каталога.</param>
+        /// <param name="freeDataClusterIndex">Индекс свободного блока данных.</param>
+        private void FlushNewDirectory(string direcoryName, int freeDirectoryRecordAddress, int freeInodeAddress, int freeInodeId, int parentInodeId, int freeDataClusterIndex)
         {
             DirectoryRecord newDirectoryRecord = new DirectoryRecord();
             newDirectoryRecord.fileName = direcoryName;
@@ -544,17 +577,17 @@ namespace DehaxOS.FileSystem
             newDirectoryInode.inodeId = freeInodeId;
             newDirectoryInode.userId = UserId;
             newDirectoryInode.groupId = GroupId;
-            newDirectoryInode.permissions = new AccessRights(true, true, true, true, false, true, true, false, true).ToUInt16();
+            newDirectoryInode.permissions = new AccessRights(true, true, true, true, false, true, true, false, true).ToInt16();
             Attributes attributes = new Attributes();
             attributes.hidden = false;
             attributes.readOnly = false;
             attributes.system = false;
             newDirectoryInode.attributes = attributes.ToByte();
-            newDirectoryInode.fileSize = (uint)(_superblock.clusterFactor * DISK_BYTES_PER_SECTOR);
-            newDirectoryInode.datetimeFileCreated = DateTime.UtcNow.Ticks;
-            newDirectoryInode.datetimeFileModified = DateTime.UtcNow.Ticks;
-            newDirectoryInode.datetimeInodeModified = DateTime.UtcNow.Ticks;
-            newDirectoryInode.firstClusterIndex = (uint)freeDataClusterIndex;
+            newDirectoryInode.fileSize = _superblock.clusterFactor * DISK_BYTES_PER_SECTOR;
+            newDirectoryInode.datetimeFileCreated = Utils.GetTimestamp();
+            newDirectoryInode.datetimeFileModified = Utils.GetTimestamp();
+            newDirectoryInode.datetimeInodeModified = Utils.GetTimestamp();
+            newDirectoryInode.firstClusterIndex = freeDataClusterIndex;
 
             FileStream.Seek(freeDirectoryRecordAddress, SeekOrigin.Begin);
             WriteStruct(FileStream, newDirectoryRecord);
@@ -563,7 +596,7 @@ namespace DehaxOS.FileSystem
             FileStream.Seek(_superblock.dataAddress + (freeDataClusterIndex - 1) * CLUSTER_SIZE, SeekOrigin.Begin);
 
             // Записать один кластер каталога
-            FileStream.Write(BitConverter.GetBytes(LAST_CLUSTER_ID), 0, sizeof(uint));
+            FileStream.Write(BitConverter.GetBytes(LAST_CLUSTER_ID), 0, sizeof(int));
             DirectoryRecord current = new DirectoryRecord();
             current.fileName = ".";
             current.fileExtension = "";
@@ -574,10 +607,20 @@ namespace DehaxOS.FileSystem
             parent.fileInodeId = parentInodeId;
             WriteStruct(FileStream, current);
             WriteStruct(FileStream, parent);
+
+            int upperBound = (CLUSTER_SIZE - sizeof(int)) / Marshal.SizeOf(typeof(DirectoryRecord)) - 2;
+            for (int i = 0; i < upperBound; i++)
+            {
+                DirectoryRecord directoryRecord = new DirectoryRecord();
+                directoryRecord.fileInodeId = FREE_DIRECTORY_RECORD;
+                directoryRecord.fileName = "";
+                directoryRecord.fileExtension = "";
+                WriteStruct(FileStream, directoryRecord);
+            }
         }
 
         /// <summary>
-        /// Создаёт новый пустой каталог.
+        /// [+] Создаёт новый пустой каталог.
         /// </summary>
         /// <param name="path">Путь к создаваемому каталогу.</param>
         public void CreateDirectory(string path)
@@ -588,13 +631,20 @@ namespace DehaxOS.FileSystem
             }
 
             Utils.CheckPath(path);
-            string fullPath = Utils.GetFullPath(path, _openedPath);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
             string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
             string newDirectoryName = Utils.GetFileName(fullPath);
 
+            Directory backupDirectory = CurrentDirectory;
             CurrentDirectory = _rootDirectory;
 
             CurrentDirectory = OpenDirectory(parentDirectoryPath);
+
+            AccessRights ar = CurrentDirectory.AccessRights;
+            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к записи в родительский каталог!");
+            }
 
             // Найти свободный блок данных
             int freeDataClusterIndex = _bitMap.FindFirstFreeCluster();
@@ -606,9 +656,9 @@ namespace DehaxOS.FileSystem
 
             // Найти свободный инод
             int addressFreeInode = -1;
-            uint addressInodes = _superblock.inodeArrayAddress;
-            uint inodesCount = _superblock.numClusters;
-            uint sizeOfInode = (uint)Marshal.SizeOf(typeof(Inode));
+            int addressInodes = _superblock.inodeArrayAddress;
+            int inodesCount = _superblock.numClusters;
+            int sizeOfInode = Marshal.SizeOf(typeof(Inode));
             FileStream.Seek(addressInodes, SeekOrigin.Begin);
             Inode freeInode = new Inode();
 
@@ -619,7 +669,7 @@ namespace DehaxOS.FileSystem
 
                 if (freeInode.fileType == FREE_INODE_TYPE)
                 {
-                    addressFreeInode = (int)FileStream.Position;
+                    addressFreeInode = (int)(FileStream.Position - sizeOfInode);
                     break;
                 }
             }
@@ -635,30 +685,30 @@ namespace DehaxOS.FileSystem
 
             long address = CurrentDirectory.StreamAddress;
 
-            uint nextClusterIndex = LAST_CLUSTER_ID;
-            uint sizeOfDirectoryRecord = (uint)Marshal.SizeOf(typeof(DirectoryRecord));
+            int nextClusterIndex = LAST_CLUSTER_ID;
+            int sizeOfDirectoryRecord = Marshal.SizeOf(typeof(DirectoryRecord));
 
             do
             {
                 FileStream.Seek(address, SeekOrigin.Begin);
 
-                nextClusterIndex = (uint)ReadStruct(FileStream, typeof(uint));
+                nextClusterIndex = (int)ReadStruct(FileStream, typeof(int));
 
                 DirectoryRecord directoryRecord;
-                uint upperBound = (uint)(address + _superblock.clusterFactor * DISK_BYTES_PER_SECTOR);
-                for (long i = address + sizeof(uint); i < upperBound; i += sizeOfDirectoryRecord)
+                int upperBound = (int)(address + _superblock.clusterFactor * DISK_BYTES_PER_SECTOR);
+                for (long i = address + sizeof(int); i < upperBound; i += sizeOfDirectoryRecord)
                 {
                     directoryRecord = (DirectoryRecord)ReadStruct(FileStream, typeof(DirectoryRecord));
 
                     if (directoryRecord.fileInodeId == FREE_DIRECTORY_RECORD)
                     {
-                        freeDirectoryRecordAddress = (int)FileStream.Position;
+                        freeDirectoryRecordAddress = (int)(FileStream.Position - sizeOfDirectoryRecord);
                         break;
                     }
-                    else
-                    {
-                        FileStream.Seek(sizeOfDirectoryRecord, SeekOrigin.Current);
-                    }
+                    //else
+                    //{
+                    //    FileStream.Seek(sizeOfDirectoryRecord, SeekOrigin.Current);
+                    //}
                 }
 
                 address = _superblock.dataAddress + (nextClusterIndex - 1) * CLUSTER_SIZE;
@@ -675,11 +725,17 @@ namespace DehaxOS.FileSystem
 
             // Записать новый каталог на диск.
             FlushNewDirectory(newDirectoryName, freeDirectoryRecordAddress, addressFreeInode, freeInode.inodeId, CurrentDirectory.InodeId, freeDataClusterIndex);
-            _bitMap.SetClusterState((uint)freeDataClusterIndex, BitMap.ClusterState.Used);
+            _bitMap.SetClusterState(freeDataClusterIndex, BitMap.ClusterState.Used);
+            _superblock.numFreeClusters--;
+            _superblock.numFreeInode--;
+
+            FlushAll();
+
+            CurrentDirectory = backupDirectory;
         }
 
         /// <summary>
-        /// Создаёт новый пустой файл.
+        /// [+] Создаёт новый пустой файл.
         /// </summary>
         /// <param name="path">Путь к создаваемому файлу.</param>
         public void CreateFile(string path)
@@ -688,17 +744,30 @@ namespace DehaxOS.FileSystem
             {
                 throw new OutOfMemoryException("Невозможно создать файл, недостаточно свободного дискового пространства!");
             }
-
+            
             Utils.CheckPath(path);
-            string fullPath = Utils.GetFullPath(path, _openedPath);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
             string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
             string newFileName = Utils.GetFileName(fullPath);
             string newFileNameWithoutExtension = Utils.GetFileNameWithoutExtension(fullPath);
             string newFileExtension = Utils.GetExtension(fullPath);
 
+            // TODO: Каждый раз начинает поиск метафайла с корневого каталога, даже если передан относительный путь.
+            Directory backupDirectory = CurrentDirectory;
             CurrentDirectory = _rootDirectory;
 
             CurrentDirectory = OpenDirectory(parentDirectoryPath);
+
+            AccessRights ar = CurrentDirectory.AccessRights;
+            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к записи в родительский каталог!");
+            }
+
+            if (CurrentDirectory.Find(newFileName) != null)
+            {
+                throw new ArgumentException("Файл или каталог с таким именем уже существует!", nameof(path));
+            }
 
             // Найти свободный блок данных
             int freeDataClusterIndex = _bitMap.FindFirstFreeCluster();
@@ -710,20 +779,20 @@ namespace DehaxOS.FileSystem
 
             // Найти свободный инод
             int addressFreeInode = -1;
-            uint addressInodes = _superblock.inodeArrayAddress;
-            uint inodesCount = _superblock.numClusters;
-            uint sizeOfInode = (uint)Marshal.SizeOf(typeof(Inode));
+            int addressInodes = _superblock.inodeArrayAddress;
+            int inodesCount = _superblock.numClusters;
+            int sizeOfInode = Marshal.SizeOf(typeof(Inode));
             FileStream.Seek(addressInodes, SeekOrigin.Begin);
             Inode freeInode = new Inode();
 
             for (int i = 0; i < inodesCount; i++)
             {
-                FileStream.Seek(sizeOfInode, SeekOrigin.Current);
+                //FileStream.Seek(sizeOfInode, SeekOrigin.Current);
                 freeInode = (Inode)ReadStruct(FileStream, typeof(Inode));
 
                 if (freeInode.fileType == FREE_INODE_TYPE)
                 {
-                    addressFreeInode = (int)FileStream.Position;
+                    addressFreeInode = (int)(FileStream.Position - sizeOfInode);
                     break;
                 }
             }
@@ -735,34 +804,34 @@ namespace DehaxOS.FileSystem
 
             // Найти свободное место в каталоге. Разместить запись в каталоге
             int freeDirectoryRecordAddress = -1;
-            FileStream.Seek(CurrentDirectory.StreamAddress, SeekOrigin.Begin);
+            //FileStream.Seek(CurrentDirectory.StreamAddress, SeekOrigin.Begin);
 
             long address = CurrentDirectory.StreamAddress;
 
-            uint nextClusterIndex = LAST_CLUSTER_ID;
-            uint sizeOfDirectoryRecord = (uint)Marshal.SizeOf(typeof(DirectoryRecord));
+            int nextClusterIndex = LAST_CLUSTER_ID;
+            int sizeOfDirectoryRecord = Marshal.SizeOf(typeof(DirectoryRecord));
 
             do
             {
                 FileStream.Seek(address, SeekOrigin.Begin);
 
-                nextClusterIndex = (uint)ReadStruct(FileStream, typeof(uint));
+                nextClusterIndex = (int)ReadStruct(FileStream, typeof(int));
 
                 DirectoryRecord directoryRecord;
-                uint upperBound = (uint)(address + _superblock.clusterFactor * DISK_BYTES_PER_SECTOR);
-                for (long i = address + sizeof(uint); i < upperBound; i += sizeOfDirectoryRecord)
+                int upperBound = (int)(address + CLUSTER_SIZE);
+                for (long i = address + sizeof(int); i < upperBound; i += sizeOfDirectoryRecord)
                 {
                     directoryRecord = (DirectoryRecord)ReadStruct(FileStream, typeof(DirectoryRecord));
 
                     if (directoryRecord.fileInodeId == FREE_DIRECTORY_RECORD)
                     {
-                        freeDirectoryRecordAddress = (int)FileStream.Position;
+                        freeDirectoryRecordAddress = (int)(FileStream.Position - sizeOfDirectoryRecord);
                         break;
                     }
-                    else
-                    {
-                        FileStream.Seek(sizeOfDirectoryRecord, SeekOrigin.Current);
-                    }
+                    //else
+                    //{
+                    //    FileStream.Seek(sizeOfDirectoryRecord, SeekOrigin.Current);
+                    //}
                 }
 
                 address = _superblock.dataAddress + (nextClusterIndex - 1) * CLUSTER_SIZE;
@@ -778,47 +847,66 @@ namespace DehaxOS.FileSystem
             FileStream.Seek(freeDirectoryRecordAddress, SeekOrigin.Begin);
 
             FlushNewFile(newFileNameWithoutExtension, newFileExtension, freeDirectoryRecordAddress, addressFreeInode, freeInode.inodeId, freeDataClusterIndex);
-            _bitMap.SetClusterState((uint)freeDataClusterIndex, BitMap.ClusterState.Used);
+            _bitMap.SetClusterState(freeDataClusterIndex, BitMap.ClusterState.Used);
             _superblock.numFreeClusters--;
             _superblock.numFreeInode--;
+
+            FlushAll();
+
+            CurrentDirectory = backupDirectory;
         }
 
         /// <summary>
-        /// Считывает каталог из кластеров данных, сохраняя информацию о списке содержимого и сведения о каждом элементе.
+        /// [+] Считывает каталог из кластеров данных, сохраняя информацию о списке содержимого и сведения о каждом элементе.
         /// </summary>
         /// <param name="clusterIndex">Номер первого кластера каталога.</param>
+        /// <param name="fullPath">Абсолютный путь к считываемому каталогу.</param>
         /// <param name="rootDirectory">Является ли считываемый каталог корневым.</param>
         /// <returns></returns>
-        private Directory ReadDirectoryClusters(uint clusterIndex, bool rootDirectory = false)
+        private Directory ReadDirectoryClusters(int clusterIndex, string fullPath, bool rootDirectory = false)
         {
             Directory result = new Directory();
 
-            long address = rootDirectory ? _superblock.rootAddress : _superblock.dataAddress + (clusterIndex - 1) * CLUSTER_SIZE;
+            if (rootDirectory)
+            {
+                result.FullPath = "/";
+                result.InodeId = 1;
+                result.StreamAddress = _superblock.rootAddress;
+            }
+            else
+            {
+                Utils.CheckPath(fullPath, true);
+                result.FullPath = fullPath;
+                result.StreamAddress = _superblock.dataAddress + (clusterIndex - 1) * CLUSTER_SIZE;
+            }
 
-            uint nextClusterIndex = LAST_CLUSTER_ID;
+            long address = rootDirectory ? _superblock.rootAddress : _superblock.dataAddress + (clusterIndex - 1) * CLUSTER_SIZE;
+            long directoryRecordsBeginAddress;
+
+            int nextClusterIndex = LAST_CLUSTER_ID;
 
             do
             {
                 FileStream.Seek(address, SeekOrigin.Begin);
+                directoryRecordsBeginAddress = address + sizeof(int);
+                //if (!rootDirectory)
+                //{
+                nextClusterIndex = (int)ReadStruct(FileStream, typeof(int));
+                //}
 
-                if (!rootDirectory)
-                {
-                    nextClusterIndex = (uint)ReadStruct(FileStream, typeof(uint));
-                }
-
-                uint sizeOfDirectoryRecord = (uint)Marshal.SizeOf(typeof(DirectoryRecord));
-                DirectoryRecord[] directoryRecords = new DirectoryRecord[(CLUSTER_SIZE - (!rootDirectory ? sizeof(uint) : 0)) / sizeOfDirectoryRecord];
-                uint upperBound = (uint)(address + CLUSTER_SIZE);
-                for (uint j = 0; j < directoryRecords.Length; j++)
+                int sizeOfDirectoryRecord = Marshal.SizeOf(typeof(DirectoryRecord));
+                DirectoryRecord[] directoryRecords = new DirectoryRecord[(CLUSTER_SIZE - (!rootDirectory ? sizeof(int) : /*0*/sizeof(int))) / sizeOfDirectoryRecord];
+                //int upperBound = (int)(address + CLUSTER_SIZE);
+                for (int j = 0; j < directoryRecords.Length; j++)
                 {
                     directoryRecords[j] = (DirectoryRecord)ReadStruct(FileStream, typeof(DirectoryRecord));
                     //FileStream.Seek(sizeOfDirectoryRecord, SeekOrigin.Current);
                 }
 
-                uint fileInodeId;
+                int fileInodeId;
                 address = _superblock.inodeArrayAddress;
                 FileStream.Seek(address, SeekOrigin.Begin);
-                uint sizeOfInode = (uint)Marshal.SizeOf(typeof(Inode));
+                int sizeOfInode = Marshal.SizeOf(typeof(Inode));
                 Inode inode;
                 MetaFile metaFile;
                 for (int i = 0; i < directoryRecords.Length; i++)
@@ -827,7 +915,7 @@ namespace DehaxOS.FileSystem
 
                     if (fileInodeId != FREE_DIRECTORY_RECORD)
                     {
-                        FileStream.Seek(i * sizeOfInode, SeekOrigin.Current);
+                        FileStream.Seek(address + (fileInodeId - 1) * sizeOfInode, SeekOrigin.Begin);
                         inode = (Inode)ReadStruct(FileStream, typeof(Inode));
 
                         switch (inode.fileType)
@@ -850,8 +938,9 @@ namespace DehaxOS.FileSystem
                         metaFile.InodeModificationTime = inode.datetimeInodeModified;
                         metaFile.ModificationTime = inode.datetimeFileModified;
                         metaFile.Size = inode.fileSize;
-                        metaFile.StreamAddress = _superblock.dataAddress + (inode.firstClusterIndex - 1) * CLUSTER_SIZE;
-                        //metaFile.DiskRecordAddress = _superblock.dataAddress + ()
+                        metaFile.FirstClusterIndex = inode.firstClusterIndex;
+                        metaFile.StreamAddress = (inode.firstClusterIndex == 0 ? _superblock.rootAddress : _superblock.dataAddress + (inode.firstClusterIndex - 1) * CLUSTER_SIZE);
+                        metaFile.DiskRecordAddress = directoryRecordsBeginAddress + (i * sizeOfDirectoryRecord);
                         metaFile.UserId = inode.userId;
 
                         metaFile.AccessRights = new AccessRights(inode.permissions);
@@ -868,54 +957,73 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// Находит в текущем каталоге указанный каталог и возвращает его.
+        /// [+] Находит в текущем каталоге указанный каталог и возвращает его.
         /// </summary>
         /// <param name="directoryName">Имя искомого каталога.</param>
         /// <returns>Объект найденного каталога или null.</returns>
-        private Directory ReadDirectory(string directoryName)
+        private Directory ReadDirectory(Directory currentDirectory, string directoryName)
         {
-            MetaFile metaFile = CurrentDirectory.Find(directoryName);
+            //MetaFile metaFile = CurrentDirectory.Find(directoryName);
+            //Directory directory = metaFile as Directory;
+
+            //if (directory != null)
+            //{
+            //    return directory;
+            //}
+            //else
+            //{
+            //    return null;
+            //}
+
+            MetaFile metaFile = currentDirectory.Find(directoryName);
             Directory directory = metaFile as Directory;
 
             if (directory != null)
             {
-                return directory;
+                directory = ReadDirectoryClusters(directory.FirstClusterIndex, directory.FullPath + (directory.FullPath != "/" ? "/" : string.Empty) + directoryName);
             }
-            else
-            {
-                return null;
-            }
+
+            return directory;
         }
 
         /// <summary>
-        /// Открывает каталог для работы. Загружает в структуры ФС информацию о каталоге.
+        /// [+] Открывает каталог для работы. Загружает в структуры ФС информацию о каталоге.
         /// </summary>
         /// <param name="path">Путь к каталогу для открытия.</param>
         public Directory OpenDirectory(string path)
         {
             Utils.CheckPath(path);
-            string fullPath = Utils.GetFullPath(path, _openedPath);
-            string[] directoriesNames = Utils.GetDirectoriesNames(fullPath);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
+            string[] directoriesNames = Utils.GetDirectoriesNames(fullPath, true);
 
             // Корневой каталог
-            if (directoriesNames.Length == 0)
+            if (path == "/" || directoriesNames.Length == 0)
             {
                 return _rootDirectory;
             }
 
             Directory directory = _rootDirectory;
+            Directory currentDirectory = directory;
             for (int i = 0; i < directoriesNames.Length; i++)
             {
-                directory = ReadDirectory(directoriesNames[i]);
+                directory = ReadDirectory(currentDirectory, directoriesNames[i]);
+                currentDirectory = directory;
 
                 if (directory != null)
                 {
+                    //directory.FullPath += (directory.FullPath != "/" ? "/" : string.Empty) + directoriesNames[i];
                     CurrentDirectory = directory;
                 }
                 else
                 {
                     throw new DirectoryNotFoundException("Директория не существует! Проверьте правильность пути.");
                 }
+            }
+
+            AccessRights ar = directory.AccessRights;
+            if (!Utils.CanAccess(UserId, GroupId, ar).canRead)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к чтению каталога!");
             }
 
             return directory;
@@ -938,6 +1046,12 @@ namespace DehaxOS.FileSystem
                 return null;
             }
 
+            AccessRights ar = file.AccessRights;
+            if (!Utils.CanAccess(UserId, GroupId, ar).canRead)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к чтению файла!");
+            }
+
             if (offset < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(offset), "Значение смещения не может быть отрицательным.");
@@ -952,20 +1066,20 @@ namespace DehaxOS.FileSystem
             FileStream.Seek(address, SeekOrigin.Begin);
 
             int currentOffset = 0;
-            count = (count == -1) ? (int)file.Size : count;
+            count = (count == -1) ? file.Size : count;
             byte[] data = new byte[count];
 
-            while (currentOffset + CLUSTER_SIZE - sizeof(uint) <= offset)
+            while (currentOffset + CLUSTER_SIZE - sizeof(int) <= offset)
             {
                 currentOffset += CLUSTER_SIZE;
             }
 
-            uint nextCluster = (uint)ReadStruct(FileStream, typeof(uint));
+            int nextCluster = (int)ReadStruct(FileStream, typeof(int));
             while (currentOffset - offset < count)
             {
-                if (currentOffset - offset >= CLUSTER_SIZE - sizeof(uint))
+                if (currentOffset - offset >= CLUSTER_SIZE - sizeof(int))
                 {
-                    currentOffset += FileStream.Read(data, currentOffset - offset, CLUSTER_SIZE - sizeof(uint));
+                    currentOffset += FileStream.Read(data, currentOffset - offset, CLUSTER_SIZE - sizeof(int));
                 }
                 else
                 {
@@ -994,6 +1108,12 @@ namespace DehaxOS.FileSystem
                 throw new FileNotFoundException("Файл не найден, невозможно записать данные в файл.", fileName);
             }
 
+            AccessRights ar = file.AccessRights;
+            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к записи в файл!");
+            }
+
             if (data == null || data.Length == 0)
             {
                 throw new ArgumentNullException(nameof(data), "Данные не могут быть пустым массивом!");
@@ -1004,15 +1124,15 @@ namespace DehaxOS.FileSystem
             Inode inode = (Inode)ReadStruct(FileStream, typeof(Inode));
 
             // Найти свободные блоки данных
-            int numberNeedDataClusters = data.Length / (CLUSTER_SIZE - sizeof(uint)) + ((data.Length % (CLUSTER_SIZE - sizeof(uint)) > 0) ? 1 : 0);
-            int numberFreeDataClusters = (int)_superblock.numFreeClusters;
+            int numberNeedDataClusters = data.Length / (CLUSTER_SIZE - sizeof(int)) + ((data.Length % (CLUSTER_SIZE - sizeof(int)) > 0) ? 1 : 0);
+            int numberFreeDataClusters = _superblock.numFreeClusters;
 
             if (numberFreeDataClusters < numberNeedDataClusters)
             {
                 throw new OutOfMemoryException("Невозможно записать данные в файл, недостаточно свободного места на жёстком диске!");
             }
 
-            uint[] freeDataClustersIndexes = new uint[numberNeedDataClusters];
+            int[] freeDataClustersIndexes = new int[numberNeedDataClusters];
 
             for (int i = 0; i < numberNeedDataClusters; i++)
             {
@@ -1023,13 +1143,13 @@ namespace DehaxOS.FileSystem
                     throw new OutOfMemoryException("Невозможно записать данные в файл, недостаточно места на жёстком диске!");
                 }
 
-                freeDataClustersIndexes[i] = (uint)freeDataClusterIndex;
+                freeDataClustersIndexes[i] = freeDataClusterIndex;
                 _superblock.numFreeClusters--;
             }
 
 
             int numberWrittenBytes = 0;
-            uint nextClusterValue = LAST_CLUSTER_ID;
+            int nextClusterValue = LAST_CLUSTER_ID;
             //while (numberWrittenBytes < data.Length)
             //{
 
@@ -1041,8 +1161,8 @@ namespace DehaxOS.FileSystem
             {
                 nextClusterValue = freeDataClustersIndexes[clusterNumber];
                 WriteStruct(FileStream, nextClusterValue);
-                FileStream.Write(data, numberWrittenBytes, CLUSTER_SIZE - sizeof(uint));
-                numberWrittenBytes += CLUSTER_SIZE - sizeof(uint);
+                FileStream.Write(data, numberWrittenBytes, CLUSTER_SIZE - sizeof(int));
+                numberWrittenBytes += CLUSTER_SIZE - sizeof(int);
                 address = _superblock.dataAddress + (nextClusterValue - 1) * CLUSTER_SIZE;
                 FileStream.Seek(address, SeekOrigin.Begin);
             }
@@ -1053,9 +1173,11 @@ namespace DehaxOS.FileSystem
 
             // Переместить к индексному дескриптору, записать размер файла.
 
-            inode.fileSize = (uint)numberWrittenBytes;
-            FileStream.Seek(-sizeOfInode, SeekOrigin.Current);
+            inode.fileSize = numberWrittenBytes;
+            FileStream.Seek(_superblock.inodeArrayAddress + (file.InodeId - 1) * sizeOfInode, SeekOrigin.Begin);
             WriteStruct(FileStream, inode);
+
+            FlushAll();
 
             return numberWrittenBytes;
         }
@@ -1072,6 +1194,12 @@ namespace DehaxOS.FileSystem
                 throw new FileNotFoundException("Файл не найден, невозможно записать данные в файл.", fileName);
             }
 
+            AccessRights ar = file.AccessRights;
+            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к записи в файл!");
+            }
+
             if (data == null || data.Length == 0)
             {
                 throw new ArgumentNullException(nameof(data), "Данные не могут быть пустым массивом!");
@@ -1082,15 +1210,20 @@ namespace DehaxOS.FileSystem
             Inode inode = (Inode)ReadStruct(FileStream, typeof(Inode));
 
             // Найти свободные блоки данных
-            int numberNeedDataClusters = (data.Length - (int)(CLUSTER_SIZE - (inode.fileSize % (CLUSTER_SIZE - sizeof(uint))))) / (CLUSTER_SIZE - sizeof(uint)) + ((data.Length % (CLUSTER_SIZE - sizeof(uint)) > 0) ? 1 : 0);
-            int numberFreeDataClusters = (int)_superblock.numFreeClusters;
+            int numberNeedDataClusters = (data.Length - (CLUSTER_SIZE - (inode.fileSize % (CLUSTER_SIZE - sizeof(int)))));
+            if (numberNeedDataClusters < 0)
+            {
+                numberNeedDataClusters = 0;
+            }
+            numberNeedDataClusters /= (CLUSTER_SIZE - sizeof(int)) + ((data.Length % (CLUSTER_SIZE - sizeof(int)) > 0) ? 1 : 0);
+            int numberFreeDataClusters = _superblock.numFreeClusters;
 
             if (numberFreeDataClusters < numberNeedDataClusters)
             {
                 throw new OutOfMemoryException("Невозможно записать данные в файл, недостаточно свободного места на жёстком диске!");
             }
 
-            uint[] freeDataClustersIndexes = new uint[numberNeedDataClusters];
+            int[] freeDataClustersIndexes = new int[numberNeedDataClusters];
 
             for (int i = 0; i < numberNeedDataClusters; i++)
             {
@@ -1101,19 +1234,19 @@ namespace DehaxOS.FileSystem
                     throw new OutOfMemoryException("Невозможно записать данные в файл, недостаточно места на жёстком диске!");
                 }
 
-                freeDataClustersIndexes[i] = (uint)freeDataClusterIndex;
+                freeDataClustersIndexes[i] = freeDataClusterIndex;
                 _superblock.numFreeClusters--;
             }
 
-            uint lastClusterIndex = inode.firstClusterIndex;
+            int lastClusterIndex = inode.firstClusterIndex;
 
             long address = _superblock.dataAddress + (inode.firstClusterIndex - 1) * CLUSTER_SIZE;
             FileStream.Seek(address, SeekOrigin.Begin);
 
-            uint nextClusterValue = LAST_CLUSTER_ID;
-            while ((nextClusterValue = (uint)ReadStruct(FileStream, typeof(uint))) != LAST_CLUSTER_ID)
+            int nextClusterValue = LAST_CLUSTER_ID;
+            while ((nextClusterValue = (int)ReadStruct(FileStream, typeof(int))) != LAST_CLUSTER_ID)
             {
-                FileStream.Seek(CLUSTER_SIZE - sizeof(uint), SeekOrigin.Current);
+                FileStream.Seek(CLUSTER_SIZE - sizeof(int), SeekOrigin.Current);
                 lastClusterIndex = nextClusterValue;
             }
 
@@ -1123,43 +1256,59 @@ namespace DehaxOS.FileSystem
             address = _superblock.dataAddress + (lastClusterIndex - 1) * CLUSTER_SIZE;
             FileStream.Seek(address, SeekOrigin.Begin);
 
-            int lastClusterUsedCount = (int)(inode.fileSize % (CLUSTER_SIZE - sizeof(uint)));
+            int lastClusterUsedCount = inode.fileSize % (CLUSTER_SIZE - sizeof(int));
             
+            int countToWrite;
+
             if (numberNeedDataClusters > 0)
             {
+                countToWrite = CLUSTER_SIZE - sizeof(int) - lastClusterUsedCount;
+
                 nextClusterValue = freeDataClustersIndexes[0];
                 WriteStruct(FileStream, nextClusterValue);
-                FileStream.Write(data, numberWrittenBytes, CLUSTER_SIZE - sizeof(uint) - lastClusterUsedCount);
-                numberWrittenBytes += CLUSTER_SIZE - sizeof(uint);
-                address = _superblock.dataAddress + (nextClusterValue - 1) * CLUSTER_SIZE;
-                FileStream.Seek(address, SeekOrigin.Begin);
+            }
+            else
+            {
+                countToWrite = data.Length;
             }
 
-            for (int clusterNumber = 1; clusterNumber < numberNeedDataClusters - 1; clusterNumber++)
+            FileStream.Seek(sizeof(int) + lastClusterUsedCount, SeekOrigin.Current);
+            FileStream.Write(data, numberWrittenBytes, countToWrite);
+            numberWrittenBytes += countToWrite;
+            address = _superblock.dataAddress + (nextClusterValue - 1) * CLUSTER_SIZE;
+            FileStream.Seek(address, SeekOrigin.Begin);
+
+            if (numberNeedDataClusters > 0)
             {
-                nextClusterValue = freeDataClustersIndexes[clusterNumber];
+                for (int clusterNumber = 1; clusterNumber < numberNeedDataClusters - 1; clusterNumber++)
+                {
+                    nextClusterValue = freeDataClustersIndexes[clusterNumber];
+                    WriteStruct(FileStream, nextClusterValue);
+                    FileStream.Write(data, numberWrittenBytes, CLUSTER_SIZE - sizeof(int));
+                    numberWrittenBytes += CLUSTER_SIZE - sizeof(int);
+                    address = _superblock.dataAddress + (nextClusterValue - 1) * CLUSTER_SIZE;
+                    FileStream.Seek(address, SeekOrigin.Begin);
+                }
+
+                nextClusterValue = LAST_CLUSTER_ID;
                 WriteStruct(FileStream, nextClusterValue);
-                FileStream.Write(data, numberWrittenBytes, CLUSTER_SIZE - sizeof(uint));
-                numberWrittenBytes += CLUSTER_SIZE - sizeof(uint);
-                address = _superblock.dataAddress + (nextClusterValue - 1) * CLUSTER_SIZE;
-                FileStream.Seek(address, SeekOrigin.Begin);
+                FileStream.Write(data, numberWrittenBytes, data.Length - numberWrittenBytes);
+                numberWrittenBytes += data.Length - numberWrittenBytes;
             }
-            nextClusterValue = LAST_CLUSTER_ID;
-            WriteStruct(FileStream, nextClusterValue);
-            FileStream.Write(data, numberWrittenBytes, data.Length - numberWrittenBytes);
-            numberWrittenBytes += data.Length - numberWrittenBytes;
 
             // Переместить к индексному дескриптору, записать размер файла.
 
-            inode.fileSize = (uint)numberWrittenBytes;
+            inode.fileSize += numberWrittenBytes;
             FileStream.Seek(-sizeOfInode, SeekOrigin.Current);
             WriteStruct(FileStream, inode);
+
+            FlushAll();
 
             return numberWrittenBytes;
         }
 
         /// <summary>
-        /// Задаёт указанные атрибуты файлу или каталогу.
+        /// [+] Задаёт указанные атрибуты файлу или каталогу.
         /// Не изменяет текущий рабочий каталог.
         /// </summary>
         /// <param name="path">Путь к файлу или каталогу.</param>
@@ -1167,35 +1316,62 @@ namespace DehaxOS.FileSystem
         public void SetAttributes(string path, Attributes attributes)
         {
             Directory current = CurrentDirectory;
+            Utils.CheckPath(path);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
+            string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
+            Directory directory = OpenDirectory(parentDirectoryPath);
 
-            Directory directory = OpenDirectory(path);
+            AccessRights ar = directory.AccessRights;
+            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к изменению атрибутов объектов этого каталога!");
+            }
 
             string fileName = Utils.GetFileName(path);
             MetaFile metaFile = directory.Find(path);
+
+            if (metaFile == null)
+            {
+                throw new FileNotFoundException("Указанный файл не существует!", path);
+            }
 
             Inode inode = new Inode();
             int sizeOfInode = Marshal.SizeOf(typeof(Inode));
             FileStream.Seek(_superblock.inodeArrayAddress + (metaFile.InodeId - 1) * sizeOfInode, SeekOrigin.Begin);
             inode = (Inode)ReadStruct(FileStream, typeof(Inode));
             inode.attributes = attributes.ToByte();
+            FileStream.Seek(-sizeOfInode, SeekOrigin.Current);
             WriteStruct(FileStream, inode);
 
             CurrentDirectory = current;
         }
 
         /// <summary>
-        /// Возвращает атрибуты файла или каталога.
+        /// [+] Возвращает атрибуты файла или каталога.
         /// </summary>
         /// <param name="path">Путь к файлу или каталогу.</param>
         /// <returns>атрибуты файла или каталога</returns>
         public Attributes GetAttributes(string path)
         {
             Directory current = CurrentDirectory;
+            Utils.CheckPath(path);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
+            string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
+            Directory directory = OpenDirectory(parentDirectoryPath);
 
-            Directory directory = OpenDirectory(path);
+            AccessRights ar = directory.AccessRights;
+            if (!Utils.CanAccess(UserId, GroupId, ar).canRead)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к чтению атрибутов объектов этого каталога!");
+            }
 
             string fileName = Utils.GetFileName(path);
             MetaFile metaFile = directory.Find(path);
+
+            if (metaFile == null)
+            {
+                throw new FileNotFoundException("Указанный файл не существует!", path);
+            }
 
             Inode inode = new Inode();
             int sizeOfInode = Marshal.SizeOf(typeof(Inode));
@@ -1209,7 +1385,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// Удаляет файл в файловой системе.
+        /// [+] Удаляет файл в файловой системе.
         /// </summary>
         /// <param name="path">Путь к файлу.</param>
         public void DeleteFile(string path)
@@ -1218,41 +1394,105 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// Удаляет каталог в файловой системе.
+        /// [+] Удаляет каталог в файловой системе.
         /// </summary>
         /// <param name="path">Путь к каталогу.</param>
         public void DeleteDirectory(string path)
         {
             DeleteFileOrDirectory(path);
-            // BUG: Не удаляется содержимое каталога.
         }
 
         /// <summary>
-        /// Удаляет запись из родительского каталога объекта и освобождает индексный дескриптор.
+        /// [+] Удаляет запись из родительского каталога объекта и освобождает индексный дескриптор.
         /// </summary>
         /// <param name="path">Путь к каталогу или файлу, который необходимо удалить.</param>
         private void DeleteFileOrDirectory(string path)
         {
+            Utils.CheckPath(path);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
             string fileName = Utils.GetFileNameWithoutExtension(path);
             string fileExtension = Utils.GetExtension(path);
             string fullFileName = Utils.GetFileName(path);
-            string directoryPath = Utils.GetDirectoryName(path);
+            string directoryPath = Utils.GetDirectoryName(fullPath);
             Directory directory = OpenDirectory(directoryPath);
+
+            AccessRights ar = directory.AccessRights;
+            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к изменению этого каталога!");
+            }
+
             MetaFile metaFile = directory.Find(fullFileName);
 
-            FileStream.Seek(metaFile.StreamAddress, SeekOrigin.Begin);
+            if (metaFile == null)
+            {
+                throw new FileNotFoundException("Ошибка удаления файла! Указанный файл не существует.", fullFileName);
+            }
+
+            // Удалить всё содержимое, если это каталог.
+            if (metaFile is Directory)
+            {
+                Directory deletingDirectory = ReadDirectoryClusters(metaFile.FirstClusterIndex, directory.FullPath + (directory.FullPath != "/" ? "/" : string.Empty) + metaFile.FullName);
+
+                for (int i = 2; i < deletingDirectory.Count; i++)
+                {
+                    DeleteFileOrDirectory(deletingDirectory.FullPath + "/" + deletingDirectory[i].FullName);
+                }
+            }
+
+            long address = (metaFile.FirstClusterIndex == 0 ? _superblock.rootAddress : _superblock.dataAddress + (metaFile.FirstClusterIndex - 1) * CLUSTER_SIZE);
+            List<int> usedClustersIndexes = new List<int>();
+            usedClustersIndexes.Add(metaFile.FirstClusterIndex);
+            FileStream.Seek(address, SeekOrigin.Begin);
+            int nextClusterIndex = -1;
+            while ((nextClusterIndex = (int)ReadStruct(FileStream, typeof(int))) != LAST_CLUSTER_ID)
+            {
+                usedClustersIndexes.Add(nextClusterIndex);
+                FileStream.Seek(_superblock.dataAddress + (nextClusterIndex - 1) * CLUSTER_SIZE, SeekOrigin.Begin);
+            }
+
+            for (int i = 0; i < usedClustersIndexes.Count; i++)
+            {
+                _bitMap.SetClusterState(usedClustersIndexes[i], BitMap.ClusterState.Free);
+            }
+
+            FileStream.Seek(metaFile.DiskRecordAddress, SeekOrigin.Begin);
             DirectoryRecord directoryRecord = new DirectoryRecord();
             directoryRecord.fileInodeId = FREE_DIRECTORY_RECORD;
             WriteStruct(FileStream, directoryRecord);
-            _superblock.numFreeClusters++;
+            _superblock.numFreeClusters += usedClustersIndexes.Count;
 
             // Перейти к заданному индексному дескриптору
             int sizeOfInode = Marshal.SizeOf(typeof(Inode));
             FileStream.Seek(_superblock.inodeArrayAddress + (metaFile.InodeId - 1) * sizeOfInode, SeekOrigin.Begin);
             Inode inode = new Inode();
             inode.fileType = FREE_INODE_TYPE;
+            inode.inodeId = metaFile.InodeId;
             WriteStruct(FileStream, inode);
             _superblock.numFreeInode++;
+
+            FlushAll();
+        }
+
+        /// <summary>
+        /// [+] Принудительно записывает изменения структур файловой системы на диск.
+        /// </summary>
+        /// <param name="flushBitMap"></param>
+        public void FlushAll(bool flushBitMap = true)
+        {
+            FileStream.Seek(0, SeekOrigin.Begin);
+            WriteStruct(FileStream, _superblock);
+
+            if (flushBitMap)
+            {
+                FileStream.Seek(_superblock.bitMapAddress, SeekOrigin.Begin);
+                byte[] bitMapData = _bitMap.GetBytes();
+                FileStream.Write(bitMapData, 0, bitMapData.Length);
+            }
+
+            FileStream.Flush(true);
+
+            _rootDirectory = ReadDirectoryClusters(0, null, true);
         }
 
         private static object ReadStruct(Stream stream, Type t)

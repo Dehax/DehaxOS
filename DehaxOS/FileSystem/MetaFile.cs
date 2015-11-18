@@ -14,13 +14,14 @@ namespace DehaxOS.FileSystem
         /// Адрес первого блока данных на диске.
         /// </summary>
         public long StreamAddress { get; set; }
+        public int FirstClusterIndex { get; set; }
         public long DiskRecordAddress { get; set; }
-        public uint InodeId { get; set; }
-        public uint UserId { get; set; }
-        public uint GroupId { get; set; }
+        public int InodeId { get; set; }
+        public int UserId { get; set; }
+        public int GroupId { get; set; }
         public AccessRights AccessRights { get; set; }
         public Attributes Attributes { get; set; }
-        public uint Size { get; set; }
+        public int Size { get; set; }
         public long CreationTime { get; set; }
         public long ModificationTime { get; set; }
         public long InodeModificationTime { get; set; }
@@ -31,7 +32,7 @@ namespace DehaxOS.FileSystem
         {
             get
             {
-                return Name + EXTENSION_PREFIX + Extension;
+                return Name + (string.IsNullOrEmpty(Extension) ? string.Empty : EXTENSION_PREFIX + Extension);
             }
             set
             {

@@ -9,6 +9,19 @@ namespace DehaxOS.FileSystem
     class Directory : MetaFile
     {
         List<MetaFile> records;
+        string _fullPathToDirectory;
+
+        public string FullPath
+        {
+            get
+            {
+                return _fullPathToDirectory;
+            }
+            set
+            {
+                _fullPathToDirectory = value;
+            }
+        }
 
         public int Count
         {
@@ -21,6 +34,7 @@ namespace DehaxOS.FileSystem
         public Directory()
         {
             records = new List<MetaFile>();
+            FullPath = "";
             // NOTE: Только логическая структура, без служебных записей?
             //Directory current = new Directory();
             //current.Name = ".";
@@ -37,6 +51,14 @@ namespace DehaxOS.FileSystem
         public void ClearRecords()
         {
             records.Clear();
+        }
+
+        public MetaFile this[int index]
+        {
+            get
+            {
+                return records[index];
+            }
         }
 
         public MetaFile Find(string fullName)

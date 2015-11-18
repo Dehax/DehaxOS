@@ -14,9 +14,9 @@ namespace DFSformat
         /// <summary>
         /// Количество байт, занимаемых одним сектором жёсткого диска
         /// </summary>
-        private const ushort DISK_BYTES_PER_SECTOR = 512;
-        //private const uint BITMAP_NUM_BITS = 102400;
-        //private const uint NUM_INODES = 2048000;
+        private const short DISK_BYTES_PER_SECTOR = 512;
+        //private const int BITMAP_NUM_BITS = 102400;
+        //private const int NUM_INODES = 2048000;
         //private const byte NUM_ROOT_DIRECTORY_RECORDS = 93;
 
         /// <summary>
@@ -31,13 +31,13 @@ namespace DFSformat
         /// <summary>
         /// Значение свободного индексного дескриптора
         /// </summary>
-        private const uint FREE_INODE_ID = 0xFFFFFFFF;
+        private const int FREE_INODE_ID = -1;
 
-        private const ushort FIRST_INODE_TYPE_ADDRESS = 12814;
+        private const short FIRST_INODE_TYPE_ADDRESS = 12814;
 
-        private readonly ulong _diskPartitionSize;
+        private readonly long _diskPartitionSize;
         private readonly byte _diskClusterFactor;
-        public readonly uint _diskClusterSize;
+        public readonly int _diskClusterSize;
 
         /// <summary>
         /// Представляет секцию суперблока в начале раздела жёсткого диска.
@@ -52,7 +52,7 @@ namespace DFSformat
             /// <summary>
             /// Количество кластеров (блоков данных).
             /// </summary>
-            public uint numClusters;
+            public int numClusters;
             /// <summary>
             /// Размер кластера (логического блока), множитель секторов:
             /// • 1 * 512 (размер сектора) = 512 байт;
@@ -62,36 +62,36 @@ namespace DFSformat
             /// <summary>
             /// Размер массива индексных дескрипторов (inode).
             /// </summary>
-            public uint inodeArraySize;
+            public int inodeArraySize;
             /// <summary>
             /// Размер битовой карты свободных/занятых кластеров.
             /// </summary>
-            public uint bitMapSize;
+            public int bitMapSize;
             /// <summary>
             /// Количество свободных кластеров.
             /// </summary>
-            public uint numFreeClusters;
+            public int numFreeClusters;
             /// <summary>
             /// Количество свободных индексных дескрипторов (inode).
             /// </summary>
-            public uint numFreeInode;
+            public int numFreeInode;
 
             /// <summary>
             /// Адрес секции корневого каталога.
             /// </summary>
-            public uint rootAddress;
+            public int rootAddress;
             /// <summary>
             /// Адрес секции битовой карты.
             /// </summary>
-            public uint bitMapAddress;
+            public int bitMapAddress;
             /// <summary>
             /// Адрес секции блоков данных.
             /// </summary>
-            public uint dataAddress;
+            public int dataAddress;
             /// <summary>
             /// Адрес секции массива индексных дескрипторов.
             /// </summary>
-            public uint inodeArrayAddress;
+            public int inodeArrayAddress;
 
             /*public byte[] GetBytes()
             //{
@@ -135,7 +135,7 @@ namespace DFSformat
             //    return data;
             //}
 
-            //public static uint GetLength()
+            //public static int GetLength()
             //{
             //    return 22;
             }*/
@@ -171,16 +171,16 @@ namespace DFSformat
 
             BitArray _bits;
 
-            public BitMap(uint bitmapNumClusters)
+            public BitMap(int bitmapNumClusters)
             {
-                _bits = new BitArray((int)bitmapNumClusters * 2);
+                _bits = new BitArray(bitmapNumClusters * 2);
             }
 
-            public ClusterState this[uint clusterIndex]
+            public ClusterState this[int clusterIndex]
             {
                 get
                 {
-                    int firstBitIndex = (int)(clusterIndex * 2);
+                    int firstBitIndex = clusterIndex * 2;
                     bool firstBit = _bits[firstBitIndex];
                     bool secondBit = _bits[firstBitIndex + 1];
 
@@ -188,9 +188,9 @@ namespace DFSformat
                 }
             }
 
-            public byte SetClusterState(uint clusterIndex, ClusterState state)
+            public byte SetClusterState(int clusterIndex, ClusterState state)
             {
-                int firstBitIndex = (int)(clusterIndex * 2);
+                int firstBitIndex = clusterIndex * 2;
 
                 bool firstBit;
                 bool secondBit;
@@ -256,9 +256,9 @@ namespace DFSformat
                 return bytes;
             }
 
-            public uint GetLength()
+            public int GetLength()
             {
-                return (uint)_bits.Length / 8;
+                return _bits.Length / 8;
             }
         }
 
@@ -277,19 +277,19 @@ namespace DFSformat
                 /// <summary>
                 /// Код индексного дескриптора.
                 /// </summary>
-                public uint inodeId;
+                public int inodeId;
                 /// <summary>
                 /// Код пользователя-владельца (создателя) файла.
                 /// </summary>
-                public ushort userId;
+                public short userId;
                 /// <summary>
                 /// Код группы-владельца (создателя) файла.
                 /// </summary>
-                public ushort groupId;
+                public short groupId;
                 /// <summary>
                 /// Права доступа к файлу — набор бит [rwx|rwx|rwx].
                 /// </summary>
-                public ushort permissions;
+                public short permissions;
                 /// <summary>
                 /// Атрибуты файла — набор битов.
                 /// </summary>
@@ -297,7 +297,7 @@ namespace DFSformat
                 /// <summary>
                 /// Размер файла в байтах.
                 /// </summary>
-                public uint fileSize;
+                public int fileSize;
                 /// <summary>
                 /// Время и дата создания файла.
                 /// </summary>
@@ -313,7 +313,7 @@ namespace DFSformat
                 /// <summary>
                 /// Номер первого блока данных файла.
                 /// </summary>
-                public uint firstClusterIndex;
+                public int firstClusterIndex;
 
                 //public byte[] GetBytes()
                 //{
@@ -387,7 +387,7 @@ namespace DFSformat
                 //    return data;
                 //}
 
-                //public static uint GetLength()
+                //public static int GetLength()
                 //{
                 //    return 44;
                 //}
@@ -395,19 +395,19 @@ namespace DFSformat
 
             Inode[] _inodes;
 
-            public Inodes(uint numInodes)
+            public Inodes(int numInodes)
             {
                 _inodes = new Inode[numInodes];
 
                 Inode inode = new Inode();
                 for (int i = 0; i < _inodes.Length; i++)
                 {
-                    inode.inodeId = (uint)(i + 1);
+                    inode.inodeId = i + 1;
                     _inodes[i] = inode;
                 }
             }
 
-            public Inode this[uint inodeIndex]
+            public Inode this[int inodeIndex]
             {
                 get
                 {
@@ -421,7 +421,7 @@ namespace DFSformat
 
             public byte[] GetBytes()
             {
-                uint inodeLength = (uint)Marshal.SizeOf<Inode>();
+                int inodeLength = Marshal.SizeOf<Inode>();
                 byte[] data = new byte[_inodes.Length * inodeLength];
                 byte[] tmp;
                 GCHandle gcHandle;
@@ -443,14 +443,14 @@ namespace DFSformat
                 return data;
             }
 
-            public uint GetLength()
+            public int GetLength()
             {
-                return (uint)(_inodes.Length * Marshal.SizeOf<Inode>());
+                return _inodes.Length * Marshal.SizeOf<Inode>();
             }
 
-            public uint GetCount()
+            public int GetCount()
             {
-                return (uint)_inodes.Length;
+                return _inodes.Length;
             }
         }
 
@@ -462,13 +462,13 @@ namespace DFSformat
             [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
             public struct RootDirectoryRecord
             {
-                public uint fileInodeId;
+                public int fileInodeId;
                 [MarshalAs(UnmanagedType.ByValTStr, SizeConst = FILE_NAME_LENGTH)]
                 public string fileName;
                 [MarshalAs(UnmanagedType.ByValTStr, SizeConst = FILE_EXTENSION_LENGTH)]
                 public string fileExtension;
 
-                public RootDirectoryRecord(uint freeInodeId/*byte fileNameLength, byte fileExtensionLength*/)
+                public RootDirectoryRecord(int freeInodeId/*byte fileNameLength, byte fileExtensionLength*/)
                 {
                     fileInodeId = freeInodeId;
                     fileName = ""; // new char[fileNameLength];
@@ -505,20 +505,23 @@ namespace DFSformat
                 //    return data;
                 //}
 
-                //public static uint GetLength()
+                //public static int GetLength()
                 //{
                 //    return 24;
                 //}
             }
 
+            int _reserved;
             RootDirectoryRecord[] _rootDirectory;
             byte[] _emptySpace;
 
-            public RootDirectory(uint clusterSize)
+            public RootDirectory(int clusterSize)
             {
+                _reserved = -1;
                 int sizeOfRootDirectoryRecord = Marshal.SizeOf<RootDirectoryRecord>();
-                _rootDirectory = new RootDirectoryRecord[clusterSize / sizeOfRootDirectoryRecord];
-                _emptySpace = new byte[clusterSize - (clusterSize / sizeOfRootDirectoryRecord) * sizeOfRootDirectoryRecord];
+                int directoryRecordsCount = (clusterSize - sizeof(int)) / sizeOfRootDirectoryRecord;
+                _rootDirectory = new RootDirectoryRecord[directoryRecordsCount];
+                _emptySpace = new byte[clusterSize - directoryRecordsCount * sizeOfRootDirectoryRecord - sizeof(int)];
 
                 _rootDirectory[0] = new RootDirectoryRecord()
                 {
@@ -550,9 +553,16 @@ namespace DFSformat
             public byte[] GetBytes()
             {
                 int sizeOfRootDirectoryRecord = Marshal.SizeOf<RootDirectoryRecord>();
-                byte[] data = new byte[_rootDirectory.Length * sizeOfRootDirectoryRecord + _emptySpace.Length];
+                int sizeOfInt = sizeof(int);
+                byte[] data = new byte[sizeof(int) + _rootDirectory.Length * sizeOfRootDirectoryRecord + _emptySpace.Length];
                 byte[] tmp;
                 GCHandle gcHandle;
+
+                tmp = BitConverter.GetBytes(_reserved);
+                for (int i = 0; i < sizeOfInt; i++)
+                {
+                    data[i] = tmp[i];
+                }
 
                 for (int i = 0; i < _rootDirectory.Length; i++)
                 {
@@ -562,7 +572,7 @@ namespace DFSformat
 
                     for (int j = 0; j < sizeOfRootDirectoryRecord; j++)
                     {
-                        data[i * sizeOfRootDirectoryRecord + j] = tmp[j];
+                        data[sizeof(int) + i * sizeOfRootDirectoryRecord + j] = tmp[j];
                     }
 
                     gcHandle.Free();
@@ -570,16 +580,16 @@ namespace DFSformat
 
                 for (int i = 0; i < _emptySpace.Length; i++)
                 {
-                    data[_rootDirectory.Length * sizeOfRootDirectoryRecord] = _emptySpace[i];
+                    data[_rootDirectory.Length * sizeOfRootDirectoryRecord + i] = _emptySpace[i];
                 }
 
                 return data;
             }
 
-            public uint GetLength()
+            public int GetLength()
             {
                 int sizeOfRootDirectoryRecord = Marshal.SizeOf<RootDirectoryRecord>();
-                return (uint)(_rootDirectory.Length * sizeOfRootDirectoryRecord + _emptySpace.Length);
+                return sizeof(int) + _rootDirectory.Length * sizeOfRootDirectoryRecord + _emptySpace.Length;
             }
         }
 
@@ -589,15 +599,15 @@ namespace DFSformat
             /// <summary>
             /// Номер следующего кластера данных файла. 0xFFFFFFFF для пометки текущего кластера последним.
             /// </summary>
-            public uint nextFileDataClusterIndex;
+            public int nextFileDataClusterIndex;
             /// <summary>
             /// Массив данных кластера.
             /// </summary>
             byte[] fileData;
 
-            public FileDataCluster(ushort fileDataLength)
+            public FileDataCluster(short fileDataLength)
             {
-                nextFileDataClusterIndex = 0xFFFFFFFF;
+                nextFileDataClusterIndex = -1;
                 fileData = new byte[fileDataLength];
             }
 
@@ -620,9 +630,9 @@ namespace DFSformat
                 return data;
             }
 
-            public uint GetLength()
+            public int GetLength()
             {
-                return (uint)(fileData.Length + 4);
+                return fileData.Length + 4;
             }
         }
 
@@ -632,13 +642,13 @@ namespace DFSformat
             [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
             public struct DirectoryRecord
             {
-                public uint fileInodeId;
+                public int fileInodeId;
                 [MarshalAs(UnmanagedType.ByValTStr, SizeConst = FILE_NAME_LENGTH)]
                 public string fileName;
                 [MarshalAs(UnmanagedType.ByValTStr, SizeConst = FILE_EXTENSION_LENGTH)]
                 public string fileExtension;
 
-                public DirectoryRecord(uint freeInodeId/*byte fileNameLength, byte fileExtensionLength*/)
+                public DirectoryRecord(int freeInodeId/*byte fileNameLength, byte fileExtensionLength*/)
                 {
                     fileInodeId = freeInodeId;
                     fileName = "";
@@ -669,7 +679,7 @@ namespace DFSformat
                 //    return data;
                 //}
 
-                //public static uint GetLength()
+                //public static int GetLength()
                 //{
                 //    return 24;
                 //}
@@ -678,7 +688,7 @@ namespace DFSformat
             /// <summary>
             /// Номер следующего кластера данных файла. 0xFFFF для пометки текущего кластера последним.
             /// </summary>
-            public uint nextFileDataClusterIndex;
+            public int nextFileDataClusterIndex;
             /// <summary>
             /// Записи каталога.
             /// </summary>
@@ -686,7 +696,7 @@ namespace DFSformat
 
             public DirectoryDataCluster(byte numDirectoryRecords)
             {
-                nextFileDataClusterIndex = 0xFFFFFFFF;
+                nextFileDataClusterIndex = -1;
                 _directoryRecords = new DirectoryRecord[numDirectoryRecords];
 
                 for (int i = 0; i < _directoryRecords.Length; i++)
@@ -705,7 +715,7 @@ namespace DFSformat
 
             public byte[] GetBytes()
             {
-                uint sizeOfDirectoryRecord = (uint)Marshal.SizeOf<DirectoryRecord>();
+                int sizeOfDirectoryRecord = Marshal.SizeOf<DirectoryRecord>();
                 byte[] data = new byte[4 + _directoryRecords.Length * sizeOfDirectoryRecord];
                 byte[] tmp;
                 GCHandle gcHandle;
@@ -733,10 +743,10 @@ namespace DFSformat
                 return data;
             }
 
-            public uint GetLength()
+            public int GetLength()
             {
-                uint sizeOfDirectoryRecord = (uint)Marshal.SizeOf<DirectoryRecord>();
-                return (uint)(4 + _directoryRecords.Length * sizeOfDirectoryRecord);
+                int sizeOfDirectoryRecord = Marshal.SizeOf<DirectoryRecord>();
+                return 4 + _directoryRecords.Length * sizeOfDirectoryRecord;
             }
         }
 
@@ -764,31 +774,31 @@ namespace DFSformat
         /// </summary>
         /// <param name="diskPartitionSize">Размер раздела</param>
         /// <param name="diskClusterFactor">Размер кластера, множитель секторов диска</param>
-        public DFSImage(ulong diskPartitionSize, byte diskClusterFactor)
+        public DFSImage(long diskPartitionSize, byte diskClusterFactor)
         {
             diskClusterFactor = (byte)Math.Pow(2, diskClusterFactor - 1);
 
             _diskPartitionSize = diskPartitionSize;
             _diskClusterFactor = diskClusterFactor;
 
-            _diskClusterSize = (uint)DISK_BYTES_PER_SECTOR * diskClusterFactor;
+            _diskClusterSize = DISK_BYTES_PER_SECTOR * diskClusterFactor;
 
 
-            _bitMap = new BitMap((uint)(_diskPartitionSize / _diskClusterSize));
-            _inodes = new Inodes((uint)(_diskPartitionSize / _diskClusterSize));
+            _bitMap = new BitMap((int)(_diskPartitionSize / _diskClusterSize));
+            _inodes = new Inodes((int)(_diskPartitionSize / _diskClusterSize));
             _rootDirectory = new RootDirectory(_diskClusterSize);
 
-            _emptyData = new byte[_diskPartitionSize - (uint)Marshal.SizeOf<Superblock>() - _bitMap.GetLength() - _inodes.GetLength() - _rootDirectory.GetLength()];
+            _emptyData = new byte[_diskPartitionSize - Marshal.SizeOf<Superblock>() - _bitMap.GetLength() - _inodes.GetLength() - _rootDirectory.GetLength()];
 
             _superblock = new Superblock()
             {
                 filesystemType = 0x28,
-                numClusters = (uint)(_diskPartitionSize / _diskClusterSize),
+                numClusters = (int)(_diskPartitionSize / _diskClusterSize),
                 clusterFactor = diskClusterFactor,
                 inodeArraySize = _inodes.GetLength(),
                 bitMapSize = _bitMap.GetLength(),
-                numFreeClusters = (uint)(_emptyData.Length / _diskClusterSize),
-                numFreeInode = (uint)(_diskPartitionSize / _diskClusterSize - 1)
+                numFreeClusters = _emptyData.Length / _diskClusterSize,
+                numFreeInode = (int)(_diskPartitionSize / _diskClusterSize - 1)
             };
 
             InitializeFileSystem();
@@ -813,7 +823,7 @@ namespace DFSformat
 
             _inodes[0] = inode;
 
-            for (uint i = 1; i < _inodes.GetCount(); i++)
+            for (int i = 1; i < _inodes.GetCount(); i++)
             {
                 inode = new Inodes.Inode()
                 {
@@ -825,7 +835,7 @@ namespace DFSformat
                 _inodes[i] = inode;
             }
 
-            _superblock.bitMapAddress = (uint)Marshal.SizeOf<Superblock>();
+            _superblock.bitMapAddress = Marshal.SizeOf<Superblock>();
             _superblock.inodeArrayAddress = _superblock.bitMapAddress + _bitMap.GetLength();
             _superblock.rootAddress = _superblock.inodeArrayAddress + _inodes.GetLength();
             _superblock.dataAddress = _superblock.rootAddress + _rootDirectory.GetLength();
