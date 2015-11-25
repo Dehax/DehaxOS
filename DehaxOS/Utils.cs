@@ -179,24 +179,52 @@ namespace DehaxOS
         }
 
         /// <summary>
-        /// Проверяет права доступа к объекту файловой системы.
+        /// Возвращает группу прав доступа для текущего пользователя.
         /// </summary>
-        /// <param name="userId">ID текущего пользователя в системе.</param>
-        /// <param name="groupId">ID группы текущего пользователя в системе.</param>
-        /// <param name="accessRights">Права доступа к объекту.</param>
-        /// <returns>набор разрешений на чтение/запись/исполнение.</returns>
-        public static AccessRights.RightsGroup CanAccess(short userId, short groupId, AccessRights accessRights)
+        /// <param name="currentUserId">Код текущего пользователя.</param>
+        /// <param name="currentGroupId">Код группы текущего пользователя.</param>
+        /// <param name="fileUserId">Код владельца файла.</param>
+        /// <param name="fileGroupId">Код группы владельца файла.</param>
+        /// <param name="accessRights">Права доступа к файлу.</param>
+        /// <returns>Группу прав доступа для текущего пользователя.</returns>
+        public static AccessRights.RightsGroup GetAccessRightsGroup(short currentUserId, short currentGroupId, short fileUserId, short fileGroupId, AccessRights accessRights)
         {
-            AccessRights.RightsGroup result = new AccessRights.RightsGroup();
+            if (currentUserId == fileUserId)
+            {
+                return accessRights.user;
+            }
+            else if (currentGroupId == fileGroupId)
+            {
+                return accessRights.group;
+            }
 
-            // TODO: Дописать проверку прав доступа.
-            result.canRead = true;
-            result.canWrite = true;
-            result.canExecute = true;
-
-            return result;
+            return accessRights.others;
         }
 
+        ///// <summary>
+        ///// Проверяет права доступа к объекту файловой системы.
+        ///// </summary>
+        ///// <param name="userId">ID текущего пользователя в системе.</param>
+        ///// <param name="groupId">ID группы текущего пользователя в системе.</param>
+        ///// <param name="accessRights">Права доступа к объекту.</param>
+        ///// <returns>набор разрешений на чтение/запись/исполнение.</returns>
+        //public static AccessRights.RightsGroup CanAccess(short userId, short groupId, AccessRights accessRights)
+        //{
+        //    AccessRights.RightsGroup result = new AccessRights.RightsGroup();
+
+        //    // TODO: Дописать проверку прав доступа.
+        //    result.canRead = true;
+        //    result.canWrite = true;
+        //    result.canExecute = true;
+
+        //    return result;
+        //}
+
+        /// <summary>
+        /// Вычисляет хеш пароля (MD5) в виде массива из 16 байтов.
+        /// </summary>
+        /// <param name="password">Пароль, по которому будет вычислен хеш MD5.</param>
+        /// <returns>Массив из 16 байтов.</returns>
         public static byte[] GetPasswordHash(string password)
         {
             using (MD5 md5 = MD5.Create())
@@ -205,11 +233,21 @@ namespace DehaxOS
             }
         }
 
+        /// <summary>
+        /// Преобразует массив байтов в строку.
+        /// </summary>
+        /// <param name="data">Массив байтов.</param>
+        /// <returns>Строка, преобразованная из массива байтов.</returns>
         public static string ByteArrayToHexString(byte[] data)
         {
             return BitConverter.ToString(data).Replace("-", string.Empty);
         }
 
+        /// <summary>
+        /// Преобразует строку в массив байтов.
+        /// </summary>
+        /// <param name="hex">Строка для преобразования.</param>
+        /// <returns>Массив байтов, преобразованный из строки.</returns>
         public static byte[] HexStringToByteArray(string hex)
         {
             int NumberChars = hex.Length;

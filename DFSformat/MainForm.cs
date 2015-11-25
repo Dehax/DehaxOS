@@ -12,9 +12,17 @@ namespace DFSformat
 {
     public partial class MainForm : Form
     {
+        private string _imagePath;
+
         public MainForm()
         {
             InitializeComponent();
+        }
+
+        public MainForm(string imagePath)
+            : this()
+        {
+            _imagePath = imagePath;
         }
 
         private void chooseButton_Click(object sender, EventArgs e)
@@ -32,6 +40,11 @@ namespace DFSformat
         private void MainForm_Load(object sender, EventArgs e)
         {
             clusterSizeComboBox.SelectedIndex = 2;
+
+            if (_imagePath != null)
+            {
+                pathTextBox.Text = _imagePath;
+            }
         }
 
         private void writeButton_Click(object sender, EventArgs e)

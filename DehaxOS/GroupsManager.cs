@@ -6,46 +6,60 @@ using System.Threading.Tasks;
 
 namespace DehaxOS
 {
-    struct Group
+    public class Group : IEquatable<Group>
     {
         public string groupName;
         public short groupId;
         public bool deleted;
 
-        private HashSet<User> _users;
+        //private HashSet<User> _users;
+        private List<User> _users;
+
+        public int Count
+        {
+            get
+            {
+                return _users.Count;
+            }
+        }
+
+        public Group()
+        {
+            //_users = new HashSet<User>();
+            _users = new List<User>();
+        }
 
         public Group(string groupName, short groupId, bool deleted = false)
+            : this()
         {
             this.groupName = groupName;
             this.groupId = groupId;
             this.deleted = deleted;
-            _users = new HashSet<User>();
+            //_users = new HashSet<User>();
         }
 
-        public bool AddUser(User user)
+        public void AddUser(User user)
         {
-            return _users.Add(user);
+            _users.Add(user);
         }
 
-        public override bool Equals(object obj)
+        public bool DeleteUser(User user)
         {
-            if (obj is Group)
+            return _users.Remove(user);
+        }
+
+        public User this[int index]
+        {
+            get
             {
-                Group group = (Group)obj;
-
-                if (group.groupName == groupName || group.groupId == groupId)
-                {
-                    return true;
-                }
+                return _users.ElementAt(index);
             }
-
-            return false;
         }
 
-        public override int GetHashCode()
-        {
-            return groupId;
-        }
+        //public override int GetHashCode()
+        //{
+        //    return groupId.GetHashCode() ^ groupName.GetHashCode();
+        //}
 
         public override string ToString()
         {
@@ -57,11 +71,27 @@ namespace DehaxOS
 
             return sb.ToString();
         }
+
+        bool IEquatable<Group>.Equals(Group other)
+        {
+            if (other is Group)
+            {
+                Group group = (Group)other;
+
+                if (group.groupName == groupName || group.groupId == groupId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
-    class GroupsManager
+    public class GroupsManager
     {
-        private HashSet<Group> _groups;
+        //private HashSet<Group> _groups;
+        private List<Group> _groups;
 
         public int Count
         {
@@ -73,28 +103,54 @@ namespace DehaxOS
 
         public GroupsManager()
         {
-            _groups = new HashSet<Group>();
+            //_groups = new HashSet<Group>();
+            _groups = new List<Group>();
         }
 
         public bool AddGroup(Group group)
         {
-            return _groups.Add(group);
+            bool result = false;
+
+            if (!_groups.Contains(group))
+            {
+                result = true;//
+                _groups.Add(group);
+            }
+
+            return result;
         }
 
-        public bool AddGroup(string groupName, short groupId)
-        {
-            Group group = new Group(groupName, groupId);
+        //public bool AddGroup(string groupName, short groupId)
+        //{
+        //    Group group = new Group(groupName, groupId);
 
-            return AddGroup(group);
-        }
+        //    return AddGroup(group);
+        //}
 
-        public bool AddUserToGroup(short groupId, User user)
+        public void AddUserToGroup(short groupId, User user)
         {
             foreach (Group group in _groups)
             {
                 if (group.groupId == groupId)
                 {
-                    return group.AddUser(user);
+                    group.AddUser(user);
+                    return;
+                }
+            }
+        }
+
+        public bool DeleteGroup(Group group)
+        {
+            return _groups.Remove(group);
+        }
+
+        public bool DeleteUserFromGroup(short groupId, User user)
+        {
+            foreach (Group group in _groups)
+            {
+                if (group.groupId == groupId)
+                {
+                    return group.DeleteUser(user);
                 }
             }
 

@@ -9,7 +9,7 @@ namespace DehaxOS
     /// <summary>
     /// Представляет сведения о пользователе ОС.
     /// </summary>
-    struct User
+    public class User : IEquatable<User>
     {
         /// <summary>
         /// Символьное имя пользователя, вводит сам пользователь при регистрации.
@@ -28,7 +28,9 @@ namespace DehaxOS
         /// Код группы пользователей, в которой состоит данный пользователь. Код группы root-пользователей имеет значение 1.
         /// </summary>
         public short groupId;
-
+        /// <summary>
+        /// Был ли пользователь удалён.
+        /// </summary>
         public bool deleted;
 
         ///// <summary>
@@ -42,6 +44,11 @@ namespace DehaxOS
         //    }
         //}
 
+        public User()
+        {
+
+        }
+
         public User(string userName, byte[] passwordHash, short userId, short groupId, bool deleted = false)
         {
             this.userName = userName;
@@ -51,11 +58,16 @@ namespace DehaxOS
             this.deleted = deleted;
         }
 
-        public override bool Equals(object obj)
+        //public override int GetHashCode()
+        //{
+        //    return userId.GetHashCode() ^ userName.GetHashCode();
+        //}
+
+        bool IEquatable<User>.Equals(User other)
         {
-            if (obj is User)
+            if (other is User)
             {
-                User user = (User)obj;
+                User user = (User)other;
 
                 if (user.userName == userName || user.userId == userId)
                     return true;
@@ -63,17 +75,19 @@ namespace DehaxOS
 
             return false;
         }
-
-        public override int GetHashCode()
-        {
-            return userId;
-        }
     }
 
-    class UsersManager
+    public class UsersManager
     {
-        private HashSet<User> _users;
+        /// <summary>
+        /// Все пользователи ОС, включая удалённых.
+        /// </summary>
+        //private HashSet<User> _users;
+        private List<User> _users;
 
+        /// <summary>
+        /// Количество пользователей ОС, включая root-пользователя и удалённых пользователей.
+        /// </summary>
         public int Count
         {
             get
@@ -84,7 +98,8 @@ namespace DehaxOS
 
         public UsersManager()
         {
-            _users = new HashSet<User>();
+            //_users = new HashSet<User>();
+            _users = new List<User>();
         }
 
         /// <summary>
@@ -94,29 +109,47 @@ namespace DehaxOS
         /// <returns></returns>
         public bool AddUser(User user)
         {
-            return _users.Add(user);
-        }
+            bool result = false;
 
-        /// <summary>
-        /// Добавляет нового пользователя в список пользователей ОС.
-        /// </summary>
-        /// <param name="userName">Имя пользователя.</param>
-        /// <param name="passwordHash">Хеш пароля пользователя.</param>
-        /// <param name="userId">Уникальный код пользователя.</param>
-        /// <param name="groupId">Код группы пользователя.</param>
-        /// <returns></returns>
-        public bool AddUser(string userName, byte[] passwordHash, short userId, short groupId)
-        {
-            User user = new User()
+            if (!_users.Contains(user))
             {
-                userName = userName,
-                passwordHash = passwordHash,
-                userId = userId,
-                groupId = groupId
-            };
+                result = true;// _users.Add(user);
+                _users.Add(user);
+            }
 
-            return AddUser(user);
+            return result;
         }
+
+        ///// <summary>
+        ///// Добавляет нового пользователя в список пользователей ОС.
+        ///// </summary>
+        ///// <param name="userName">Имя пользователя.</param>
+        ///// <param name="passwordHash">Хеш пароля пользователя.</param>
+        ///// <param name="userId">Уникальный код пользователя.</param>
+        ///// <param name="groupId">Код группы пользователя.</param>
+        ///// <returns></returns>
+        //public bool AddUser(string userName, byte[] passwordHash, short userId, short groupId)
+        //{
+        //    User user = new User()
+        //    {
+        //        userName = userName,
+        //        passwordHash = passwordHash,
+        //        userId = userId,
+        //        groupId = groupId
+        //    };
+
+        //    return AddUser(user);
+        //}
+
+        //public bool DeleteUser(User user)
+        //{
+        //    for (int i = 0; i < _users.Count; i++)
+        //    {
+        //        if (_users.ElementAt(i).deleted)
+        //    }
+
+        //    //return _users.Remove(user);
+        //}
 
         public User this[int index]
         {

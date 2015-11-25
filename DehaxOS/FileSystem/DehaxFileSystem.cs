@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DehaxOS.FileSystem
 {
-    struct AccessRights
+    public struct AccessRights
     {
         public struct RightsGroup
         {
@@ -88,7 +88,7 @@ namespace DehaxOS.FileSystem
         }
     }
 
-    struct Attributes
+    public struct Attributes
     {
         public bool hidden;
         public bool system;
@@ -109,6 +109,7 @@ namespace DehaxOS.FileSystem
         }
     }
 
+    // BUG: Set/Get Attributes/AccessRights не работает для корневого каталога (path = "/").
     class DehaxFileSystem
     {
         #region Константы
@@ -534,7 +535,7 @@ namespace DehaxOS.FileSystem
             newFileInode.inodeId = freeInodeId;
             newFileInode.userId = UserId;
             newFileInode.groupId = GroupId;
-            newFileInode.permissions = new AccessRights(true, true, true, true, false, true, true, false, true).ToInt16();
+            newFileInode.permissions = new AccessRights(true, true, false, true, false, false, true, false, false).ToInt16();
             Attributes attributes = new Attributes();
             attributes.hidden = false;
             attributes.readOnly = false;
@@ -640,10 +641,15 @@ namespace DehaxOS.FileSystem
 
             CurrentDirectory = OpenDirectory(parentDirectoryPath);
 
-            AccessRights ar = CurrentDirectory.AccessRights;
-            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            //AccessRights ar = CurrentDirectory.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canWrite)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к записи в родительский каталог!");
+            }
+
+            if (CurrentDirectory.Find(newDirectoryName) != null)
+            {
+                throw new ArgumentException("Файл или каталог с таким именем уже существует!", nameof(path));
             }
 
             // Найти свободный блок данных
@@ -664,7 +670,7 @@ namespace DehaxOS.FileSystem
 
             for (int i = 0; i < inodesCount; i++)
             {
-                FileStream.Seek(sizeOfInode, SeekOrigin.Current);
+                //FileStream.Seek(sizeOfInode, SeekOrigin.Current);
                 freeInode = (Inode)ReadStruct(FileStream, typeof(Inode));
 
                 if (freeInode.fileType == FREE_INODE_TYPE)
@@ -695,7 +701,7 @@ namespace DehaxOS.FileSystem
                 nextClusterIndex = (int)ReadStruct(FileStream, typeof(int));
 
                 DirectoryRecord directoryRecord;
-                int upperBound = (int)(address + _superblock.clusterFactor * DISK_BYTES_PER_SECTOR);
+                int upperBound = (int)(address + CLUSTER_SIZE);
                 for (long i = address + sizeof(int); i < upperBound; i += sizeOfDirectoryRecord)
                 {
                     directoryRecord = (DirectoryRecord)ReadStruct(FileStream, typeof(DirectoryRecord));
@@ -758,8 +764,8 @@ namespace DehaxOS.FileSystem
 
             CurrentDirectory = OpenDirectory(parentDirectoryPath);
 
-            AccessRights ar = CurrentDirectory.AccessRights;
-            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            //AccessRights ar = CurrentDirectory.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canWrite)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к записи в родительский каталог!");
             }
@@ -863,15 +869,39 @@ namespace DehaxOS.FileSystem
         /// <param name="fullPath">Абсолютный путь к считываемому каталогу.</param>
         /// <param name="rootDirectory">Является ли считываемый каталог корневым.</param>
         /// <returns></returns>
-        private Directory ReadDirectoryClusters(int clusterIndex, string fullPath, bool rootDirectory = false)
+        private Directory ReadDirectoryClusters(int clusterIndex, string fullPath, bool rootDirectory = false, Directory directoryToFill = null)
         {
-            Directory result = new Directory();
+            Directory result = (directoryToFill == null ? new Directory() : directoryToFill);
+
+            if (directoryToFill != null)
+            {
+                result.ClearRecords();
+            }
 
             if (rootDirectory)
             {
                 result.FullPath = "/";
-                result.InodeId = 1;
+                //result.InodeId = 1;
+                //result.StreamAddress = _superblock.rootAddress;
+                //result.UserId = 1;
+
+                FileStream.Seek(_superblock.inodeArrayAddress, SeekOrigin.Begin);
+                Inode inode = (Inode)ReadStruct(FileStream, typeof(Inode));
+
+                result.CreationTime = inode.datetimeFileCreated;
+                result.Extension = string.Empty;
+                result.Name = "/";
+                result.GroupId = inode.groupId;
+                result.InodeId = inode.inodeId;
+                result.InodeModificationTime = inode.datetimeInodeModified;
+                result.ModificationTime = inode.datetimeFileModified;
+                result.Size = inode.fileSize;
+                result.FirstClusterIndex = inode.firstClusterIndex;
                 result.StreamAddress = _superblock.rootAddress;
+                result.DiskRecordAddress = -1;
+                result.UserId = inode.userId;
+                result.AccessRights = new AccessRights(inode.permissions);
+                result.Attributes = new Attributes(inode.attributes);
             }
             else
             {
@@ -980,7 +1010,7 @@ namespace DehaxOS.FileSystem
 
             if (directory != null)
             {
-                directory = ReadDirectoryClusters(directory.FirstClusterIndex, directory.FullPath + (directory.FullPath != "/" ? "/" : string.Empty) + directoryName);
+                directory = ReadDirectoryClusters(directory.FirstClusterIndex, currentDirectory.FullPath + (currentDirectory.FullPath != "/" ? "/" : string.Empty) + directoryName, false, directory);
             }
 
             return directory;
@@ -988,6 +1018,7 @@ namespace DehaxOS.FileSystem
 
         /// <summary>
         /// [+] Открывает каталог для работы. Загружает в структуры ФС информацию о каталоге.
+        /// TODO: Изменять текущий каталог.
         /// </summary>
         /// <param name="path">Путь к каталогу для открытия.</param>
         public Directory OpenDirectory(string path)
@@ -1021,8 +1052,8 @@ namespace DehaxOS.FileSystem
                 }
             }
 
-            AccessRights ar = directory.AccessRights;
-            if (!Utils.CanAccess(UserId, GroupId, ar).canRead)
+            //AccessRights ar = directory.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canRead)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к чтению каталога!");
             }
@@ -1060,8 +1091,8 @@ namespace DehaxOS.FileSystem
                 return null;
             }
 
-            AccessRights ar = file.AccessRights;
-            if (!Utils.CanAccess(UserId, GroupId, ar).canRead)
+            //AccessRights ar = file.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canExecute && !Utils.GetAccessRightsGroup(UserId, GroupId, file.UserId, file.GroupId, file.AccessRights).canRead)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к чтению файла!");
             }
@@ -1091,7 +1122,7 @@ namespace DehaxOS.FileSystem
             int nextCluster = (int)ReadStruct(FileStream, typeof(int));
             while (currentOffset - offset < count)
             {
-                if (currentOffset - offset >= CLUSTER_SIZE - sizeof(int))
+                if (count - currentOffset - offset >= CLUSTER_SIZE - sizeof(int))
                 {
                     currentOffset += FileStream.Read(data, currentOffset - offset, CLUSTER_SIZE - sizeof(int));
                 }
@@ -1104,6 +1135,7 @@ namespace DehaxOS.FileSystem
                 {
                     address = _superblock.dataAddress + (nextCluster - 1) * CLUSTER_SIZE;
                     FileStream.Seek(address, SeekOrigin.Begin);
+                    nextCluster = (int)ReadStruct(FileStream, typeof(int));
                 }
             }
 
@@ -1142,8 +1174,8 @@ namespace DehaxOS.FileSystem
                 throw new FileNotFoundException("Файл не найден, невозможно записать данные в файл.", fileName);
             }
 
-            AccessRights ar = file.AccessRights;
-            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            //AccessRights ar = file.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canExecute && !Utils.GetAccessRightsGroup(UserId, GroupId, file.UserId, file.GroupId, file.AccessRights).canWrite)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к записи в файл!");
             }
@@ -1159,6 +1191,12 @@ namespace DehaxOS.FileSystem
 
             // Найти свободные блоки данных
             int numberNeedDataClusters = data.Length / (CLUSTER_SIZE - sizeof(int)) + ((data.Length % (CLUSTER_SIZE - sizeof(int)) > 0) ? 1 : 0);
+            int numberExistDataClusters = inode.fileSize / (CLUSTER_SIZE - sizeof(int)) + ((inode.fileSize % (CLUSTER_SIZE - sizeof(int)) > 0) ? 1 : 0);
+            numberNeedDataClusters -= numberExistDataClusters + 1;
+            if (numberNeedDataClusters < 0)
+            {
+                numberNeedDataClusters = 0;
+            }
             int numberFreeDataClusters = _superblock.numFreeClusters;
 
             if (numberFreeDataClusters < numberNeedDataClusters)
@@ -1166,9 +1204,24 @@ namespace DehaxOS.FileSystem
                 throw new OutOfMemoryException("Невозможно записать данные в файл, недостаточно свободного места на жёстком диске!");
             }
 
-            int[] freeDataClustersIndexes = new int[numberNeedDataClusters];
+            int[] freeDataClustersIndexes = new int[1 + numberExistDataClusters + numberNeedDataClusters];
 
-            for (int i = 0; i < numberNeedDataClusters; i++)
+            int nextClusterValue = LAST_CLUSTER_ID;
+            long address = _superblock.dataAddress + (inode.firstClusterIndex - 1) * CLUSTER_SIZE;
+            FileStream.Seek(address, SeekOrigin.Begin);
+
+            int clusterIndex = 0;
+            freeDataClustersIndexes[clusterIndex] = inode.firstClusterIndex;
+
+            while ((nextClusterValue = (int)ReadStruct(FileStream, typeof(int))) != LAST_CLUSTER_ID)
+            {
+                address = _superblock.dataAddress + (nextClusterValue - 1) * CLUSTER_SIZE;
+                FileStream.Seek(address, SeekOrigin.Begin);
+
+                freeDataClustersIndexes[++clusterIndex] = nextClusterValue;
+            }
+
+            for (int i = 1 + numberExistDataClusters; i < 1 + numberExistDataClusters + numberNeedDataClusters; i++)
             {
                 int freeDataClusterIndex = _bitMap.FindFirstFreeCluster(true);
 
@@ -1183,15 +1236,15 @@ namespace DehaxOS.FileSystem
 
 
             int numberWrittenBytes = 0;
-            int nextClusterValue = LAST_CLUSTER_ID;
+            nextClusterValue = LAST_CLUSTER_ID;
             //while (numberWrittenBytes < data.Length)
             //{
 
             //}
-            long address = _superblock.dataAddress + (inode.firstClusterIndex - 1) * CLUSTER_SIZE;
+            address = _superblock.dataAddress + (inode.firstClusterIndex - 1) * CLUSTER_SIZE;
             FileStream.Seek(address, SeekOrigin.Begin);
 
-            for (int clusterNumber = 0; clusterNumber < numberNeedDataClusters - 1; clusterNumber++)
+            for (int clusterNumber = 1; clusterNumber <= numberNeedDataClusters; clusterNumber++)
             {
                 nextClusterValue = freeDataClustersIndexes[clusterNumber];
                 WriteStruct(FileStream, nextClusterValue);
@@ -1230,8 +1283,8 @@ namespace DehaxOS.FileSystem
                 throw new FileNotFoundException("Файл не найден, невозможно записать данные в файл.", fileName);
             }
 
-            AccessRights ar = file.AccessRights;
-            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            //AccessRights ar = file.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canExecute && !Utils.GetAccessRightsGroup(UserId, GroupId, file.UserId, file.GroupId, file.AccessRights).canWrite)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к записи в файл!");
             }
@@ -1343,6 +1396,52 @@ namespace DehaxOS.FileSystem
             return numberWrittenBytes;
         }
 
+        public void RenameFile(string path, string newFileName)
+        {
+            RenameFileOrDirectory(path, newFileName);
+        }
+
+        public void RenameDirectory(string path, string newDirectoryName)
+        {
+            RenameFileOrDirectory(path, newDirectoryName);
+        }
+
+        private void RenameFileOrDirectory(string path, string newName)
+        {
+            Directory current = CurrentDirectory;
+            Utils.CheckPath(path);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
+            string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
+            string oldName = Utils.GetFileName(fullPath);
+            Directory directory = OpenDirectory(parentDirectoryPath);
+
+            //AccessRights ar = directory.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canRead
+                && !Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canWrite)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к изменению атрибутов объектов этого каталога!");
+            }
+
+            MetaFile metaFile = directory.Find(oldName);
+
+            if (metaFile == null)
+            {
+                throw new FileNotFoundException("Указанный файл или каталог не существует!", path);
+            }
+
+            FileStream.Seek(metaFile.DiskRecordAddress, SeekOrigin.Begin);
+            DirectoryRecord directoryRecord = (DirectoryRecord)ReadStruct(FileStream, typeof(DirectoryRecord));
+            directoryRecord.fileName = Utils.GetFileNameWithoutExtension(newName);
+            directoryRecord.fileExtension = Utils.GetExtension(newName);
+            int sizeOfDirectoryRecord = Marshal.SizeOf(typeof(DirectoryRecord));
+            FileStream.Seek(-sizeOfDirectoryRecord, SeekOrigin.Current);
+            WriteStruct(FileStream, directoryRecord);
+
+            FlushAll(false);
+
+            CurrentDirectory = current;
+        }
+
         /// <summary>
         /// [+] Задаёт указанные атрибуты файлу или каталогу.
         /// Не изменяет текущий рабочий каталог.
@@ -1357,8 +1456,8 @@ namespace DehaxOS.FileSystem
             string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
             Directory directory = OpenDirectory(parentDirectoryPath);
 
-            AccessRights ar = directory.AccessRights;
-            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            //AccessRights ar = directory.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canExecute)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к изменению атрибутов объектов этого каталога!");
             }
@@ -1368,7 +1467,7 @@ namespace DehaxOS.FileSystem
 
             if (metaFile == null)
             {
-                throw new FileNotFoundException("Указанный файл не существует!", path);
+                throw new FileNotFoundException("Указанный файл или каталог не существует!", path);
             }
 
             Inode inode = new Inode();
@@ -1397,8 +1496,8 @@ namespace DehaxOS.FileSystem
             string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
             Directory directory = OpenDirectory(parentDirectoryPath);
 
-            AccessRights ar = directory.AccessRights;
-            if (!Utils.CanAccess(UserId, GroupId, ar).canRead)
+            //AccessRights ar = directory.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canExecute)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к чтению атрибутов объектов этого каталога!");
             }
@@ -1408,7 +1507,7 @@ namespace DehaxOS.FileSystem
 
             if (metaFile == null)
             {
-                throw new FileNotFoundException("Указанный файл не существует!", path);
+                throw new FileNotFoundException("Указанный файл или каталог не существует!", path);
             }
 
             Inode inode = new Inode();
@@ -1420,6 +1519,84 @@ namespace DehaxOS.FileSystem
             CurrentDirectory = current;
 
             return attributes;
+        }
+
+        /// <summary>
+        /// Возвращает права доступа к файлу или каталогу.
+        /// </summary>
+        /// <param name="path">Путь к файлу или каталогу.</param>
+        /// <returns>права доступа к файлу или каталогу</returns>
+        public AccessRights GetAccessRights(string path)
+        {
+            Directory current = CurrentDirectory;
+            Utils.CheckPath(path);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
+            string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
+            Directory directory = OpenDirectory(parentDirectoryPath);
+
+            //AccessRights ar = directory.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canExecute)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к чтению прав доступа к объектам этого каталога!");
+            }
+
+            string fileName = Utils.GetFileName(path);
+            MetaFile metaFile = directory.Find(fileName);
+
+            if (metaFile == null)
+            {
+                throw new FileNotFoundException("Указанный файл или каталог не существует!", path);
+            }
+
+            Inode inode = new Inode();
+            int sizeOfInode = Marshal.SizeOf(typeof(Inode));
+            FileStream.Seek(_superblock.inodeArrayAddress + (metaFile.InodeId - 1) * sizeOfInode, SeekOrigin.Begin);
+            inode = (Inode)ReadStruct(FileStream, typeof(Inode));
+            AccessRights accessRights = new AccessRights(inode.permissions);
+
+            CurrentDirectory = current;
+
+            return accessRights;
+        }
+
+        /// <summary>
+        /// Назначает указанные права доступа файлу или каталогу.
+        /// </summary>
+        /// <param name="path">Путь к файлу или каталогу.</param>
+        /// <param name="accessRights">Права доступа, которые будут назначены.</param>
+        public void SetAccessRights(string path, AccessRights accessRights)
+        {
+            Directory current = CurrentDirectory;
+            Utils.CheckPath(path);
+            string fullPath = Utils.GetFullPath(path, CurrentDirectory.FullPath);
+            string parentDirectoryPath = Utils.GetDirectoryName(fullPath);
+            Directory directory = OpenDirectory(parentDirectoryPath);
+
+            //AccessRights ar = directory.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canExecute)
+            {
+                throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к изменению прав доступа к объектам этого каталога!");
+            }
+
+            string fileName = Utils.GetFileName(path);
+            MetaFile metaFile = directory.Find(fileName);
+
+            if (metaFile == null)
+            {
+                throw new FileNotFoundException("Указанный файл или каталог не существует!", path);
+            }
+
+            Inode inode = new Inode();
+            int sizeOfInode = Marshal.SizeOf(typeof(Inode));
+            FileStream.Seek(_superblock.inodeArrayAddress + (metaFile.InodeId - 1) * sizeOfInode, SeekOrigin.Begin);
+            inode = (Inode)ReadStruct(FileStream, typeof(Inode));
+            inode.permissions = accessRights.ToInt16();
+            FileStream.Seek(-sizeOfInode, SeekOrigin.Current);
+            WriteStruct(FileStream, inode);
+
+            FlushAll(false);
+
+            CurrentDirectory = current;
         }
 
         /// <summary>
@@ -1454,8 +1631,8 @@ namespace DehaxOS.FileSystem
             string directoryPath = Utils.GetDirectoryName(fullPath);
             Directory directory = OpenDirectory(directoryPath);
 
-            AccessRights ar = directory.AccessRights;
-            if (!Utils.CanAccess(UserId, GroupId, ar).canWrite)
+            //AccessRights ar = directory.AccessRights;
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canWrite)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к изменению этого каталога!");
             }

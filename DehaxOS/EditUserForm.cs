@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace DehaxOS
 {
-    public partial class LoginForm : Form
+    public partial class EditUserForm : Form
     {
         private string _userName;
         /// <summary>
@@ -21,14 +21,9 @@ namespace DehaxOS
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_userName))
-                {
-                    throw new NullReferenceException("Имя пользователя не заполнено! Проверьте, было ли запущено окно логина перед получением имени пользователя.");
-                }
-
                 return _userName;
             }
-            private set
+            set
             {
                 if (string.IsNullOrWhiteSpace(value))
                 {
@@ -60,11 +55,6 @@ namespace DehaxOS
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_password))
-                {
-                    throw new NullReferenceException("Пароль не заполнен! Проверьте, было ли запущено окно логина перед получением пароля пользователя.");
-                }
-
                 return _password;
             }
             private set
@@ -91,38 +81,75 @@ namespace DehaxOS
                 _password = value;
             }
         }
+        public short GroupId { get; set; }
 
-        public LoginForm()
+        public Group[] Groups { get; set; }
+
+        public EditUserForm()
         {
             InitializeComponent();
+
+            _userName = string.Empty;
+            _password = string.Empty;
+            GroupId = -1;
+            Groups = new Group[0];
+        }
+
+        private void EditUserForm_Load(object sender, EventArgs e)
+        {
+            userNameTextBox.Text = UserName;
+            passwordTextBox.Text = Password;
+            repeatPasswordTextBox.Text = Password;
+            groupComboBox.Items.Clear();
+
+            for (int i = 0; i < Groups.Length; i++)
+            {
+                groupComboBox.Items.Add(Groups[i].groupName);
+
+                if (Groups[i].groupId == GroupId)
+                {
+                    groupComboBox.SelectedIndex = i;
+                }
+            }
         }
 
         private void okButton_Click(object sender, EventArgs e)
         {
+            string userName = userNameTextBox.Text;
+            string password = passwordTextBox.Text;
+            string repeatPassword = repeatPasswordTextBox.Text;
+
+            if (password != repeatPassword)
+            {
+                MessageBox.Show(this, "Пароли не совпадают!", "Ошибка ввода", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                DialogResult = DialogResult.None;
+                return;
+            }
+
             try
             {
-                UserName = loginTextBox.Text;
-                Password = passwordTextBox.Text;
+                UserName = userName;
+                Password = password;
+
+                for (int i = 0; i < Groups.Length; i++)
+                {
+                    if (Groups[i].groupName == (string)groupComboBox.SelectedItem)
+                    {
+                        GroupId = Groups[i].groupId;
+                    }
+                }
+
+                if (GroupId < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(GroupId), "Не выбрана группа пользователей!");
+                }
             }
             catch (Exception ex) when (ex is NullReferenceException || ex is ArgumentOutOfRangeException)
             {
-                MessageBox.Show(this, ex.Message, "Ошибка ввода!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 DialogResult = DialogResult.None;
+                return;
             }
-
-            ClearFields();
-        }
-
-        private void cancelButton_Click(object sender, EventArgs e)
-        {
-            ClearFields();
-        }
-
-        private void ClearFields()
-        {
-            loginTextBox.Clear();
-            passwordTextBox.Clear();
-            loginTextBox.Focus();
         }
     }
 }

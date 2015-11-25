@@ -17,8 +17,8 @@ namespace DehaxOS.FileSystem
         public int FirstClusterIndex { get; set; }
         public long DiskRecordAddress { get; set; }
         public int InodeId { get; set; }
-        public int UserId { get; set; }
-        public int GroupId { get; set; }
+        public short UserId { get; set; }
+        public short GroupId { get; set; }
         public AccessRights AccessRights { get; set; }
         public Attributes Attributes { get; set; }
         public int Size { get; set; }
