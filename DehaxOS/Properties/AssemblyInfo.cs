@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // Управление общими сведениями о сборке осуществляется с помощью 
 // набора атрибутов. Измените значения этих атрибутов, чтобы изменить сведения,
 // связанные со сборкой.
-[assembly: AssemblyTitle("DehaxOS")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Dehax Operating System Emulator")]
+[assembly: AssemblyDescription("Emulates working of DehaxOS.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyCompany("DonNTU")]
 [assembly: AssemblyProduct("DehaxOS")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2015")]
+[assembly: AssemblyCopyright("Copyright © Dehax")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

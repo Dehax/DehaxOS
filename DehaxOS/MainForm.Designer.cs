@@ -42,6 +42,9 @@
             this.newTextFileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openMetaFileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.copyMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.insertMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.deleteMetaFileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.renameMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
@@ -116,6 +119,9 @@
             this.createMenuItem,
             this.openMetaFileMenuItem,
             this.toolStripSeparator1,
+            this.copyMenuItem,
+            this.insertMenuItem,
+            this.toolStripSeparator5,
             this.deleteMetaFileMenuItem,
             this.renameMenuItem,
             this.toolStripSeparator2,
@@ -132,7 +138,7 @@
             this.newDirectoryMenuItem,
             this.newTextFileMenuItem});
             this.createMenuItem.Name = "createMenuItem";
-            this.createMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.createMenuItem.Size = new System.Drawing.Size(181, 22);
             this.createMenuItem.Text = "Создать";
             // 
             // newDirectoryMenuItem
@@ -158,20 +164,42 @@
             // 
             this.openMetaFileMenuItem.Name = "openMetaFileMenuItem";
             this.openMetaFileMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openMetaFileMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openMetaFileMenuItem.Size = new System.Drawing.Size(181, 22);
             this.openMetaFileMenuItem.Text = "Открыть";
             this.openMetaFileMenuItem.Click += new System.EventHandler(this.OpenMetaFileMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(178, 6);
+            // 
+            // copyMenuItem
+            // 
+            this.copyMenuItem.Name = "copyMenuItem";
+            this.copyMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
+            this.copyMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.copyMenuItem.Text = "Копировать";
+            this.copyMenuItem.Click += new System.EventHandler(this.copyMenuItem_Click);
+            // 
+            // insertMenuItem
+            // 
+            this.insertMenuItem.Enabled = false;
+            this.insertMenuItem.Name = "insertMenuItem";
+            this.insertMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V)));
+            this.insertMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.insertMenuItem.Text = "Вставить";
+            this.insertMenuItem.Click += new System.EventHandler(this.insertMenuItem_Click);
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(178, 6);
             // 
             // deleteMetaFileMenuItem
             // 
             this.deleteMetaFileMenuItem.Name = "deleteMetaFileMenuItem";
             this.deleteMetaFileMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.deleteMetaFileMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deleteMetaFileMenuItem.Size = new System.Drawing.Size(181, 22);
             this.deleteMetaFileMenuItem.Text = "Удалить";
             this.deleteMetaFileMenuItem.Click += new System.EventHandler(this.deleteMetaFileMenuItem_Click);
             // 
@@ -179,32 +207,32 @@
             // 
             this.renameMenuItem.Name = "renameMenuItem";
             this.renameMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F2;
-            this.renameMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.renameMenuItem.Size = new System.Drawing.Size(181, 22);
             this.renameMenuItem.Text = "Переименовать";
             this.renameMenuItem.Click += new System.EventHandler(this.renameMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(178, 6);
             // 
             // propertiesMenuItem
             // 
             this.propertiesMenuItem.Name = "propertiesMenuItem";
             this.propertiesMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F3;
-            this.propertiesMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.propertiesMenuItem.Size = new System.Drawing.Size(181, 22);
             this.propertiesMenuItem.Text = "Свойства...";
             this.propertiesMenuItem.Click += new System.EventHandler(this.propertiesMenuItem_Click);
             // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator4.Size = new System.Drawing.Size(178, 6);
             // 
             // formatMenuItem
             // 
             this.formatMenuItem.Name = "formatMenuItem";
-            this.formatMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.formatMenuItem.Size = new System.Drawing.Size(181, 22);
             this.formatMenuItem.Text = "Форматировать...";
             this.formatMenuItem.Click += new System.EventHandler(this.formatMenuItem_Click);
             // 
@@ -213,6 +241,7 @@
             this.schedulerMenuItem.Name = "schedulerMenuItem";
             this.schedulerMenuItem.Size = new System.Drawing.Size(99, 20);
             this.schedulerMenuItem.Text = "Планировщик";
+            this.schedulerMenuItem.Click += new System.EventHandler(this.schedulerMenuItem_Click);
             // 
             // statusStrip
             // 
@@ -297,6 +326,9 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem formatMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem copyMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem insertMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
     }
 }
 

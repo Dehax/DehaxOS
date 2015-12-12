@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // Управление общими сведениями о сборке осуществляется с помощью 
 // набора атрибутов. Измените значения этих атрибутов, чтобы изменить сведения,
 // связанные со сборкой.
-[assembly: AssemblyTitle("DFSformat")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("DehaxFS Format Tool")]
+[assembly: AssemblyDescription("Formats disk drive to DehaxFS for working with DehaxOS.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("DFSformat")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2015")]
+[assembly: AssemblyCompany("DonNTU")]
+[assembly: AssemblyProduct("DehaxOS")]
+[assembly: AssemblyCopyright("Copyright © Dehax")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

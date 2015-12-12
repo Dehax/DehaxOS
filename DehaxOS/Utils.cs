@@ -1,11 +1,8 @@
 ﻿using DehaxOS.FileSystem;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DehaxOS
 {
@@ -189,7 +186,17 @@ namespace DehaxOS
         /// <returns>Группу прав доступа для текущего пользователя.</returns>
         public static AccessRights.RightsGroup GetAccessRightsGroup(short currentUserId, short currentGroupId, short fileUserId, short fileGroupId, AccessRights accessRights)
         {
-            if (currentUserId == fileUserId)
+
+            if (currentUserId == 1 && currentGroupId == 1)
+            {
+                return new AccessRights.RightsGroup()
+                {
+                    canRead = true,
+                    canWrite = true,
+                    canExecute = true
+                };
+            }
+            else if (currentUserId == fileUserId)
             {
                 return accessRights.user;
             }

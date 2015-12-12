@@ -2,10 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DehaxOS.FileSystem
 {
@@ -460,7 +457,7 @@ namespace DehaxOS.FileSystem
         {
             get
             {
-                return CanCreateInode && _superblock.numFreeClusters >= 1;
+                return CanCreateInode || _superblock.numFreeClusters >= 1;
             }
         }
 
@@ -493,7 +490,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Выполняет инициализацию структур файловой системы.
+        /// Выполняет инициализацию структур файловой системы.
         /// </summary>
         private void Initialize()
         {
@@ -515,7 +512,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Записывает информацию о новом созданном файле на диск.
+        /// Записывает информацию о новом созданном файле на диск.
         /// </summary>
         /// <param name="fileName">Имя файла.</param>
         /// <param name="fileExtension">Расширение файла.</param>
@@ -558,7 +555,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Записывает информацию о новом созданном каталоге на диск.
+        /// Записывает информацию о новом созданном каталоге на диск.
         /// </summary>
         /// <param name="direcoryName">Имя каталога.</param>
         /// <param name="freeDirectoryRecordAddress">Адрес свободной записи в родительском каталоге.</param>
@@ -621,7 +618,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Создаёт новый пустой каталог.
+        /// Создаёт новый пустой каталог.
         /// </summary>
         /// <param name="path">Путь к создаваемому каталогу.</param>
         public void CreateDirectory(string path)
@@ -741,7 +738,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Создаёт новый пустой файл.
+        /// Создаёт новый пустой файл.
         /// </summary>
         /// <param name="path">Путь к создаваемому файлу.</param>
         public void CreateFile(string path)
@@ -863,7 +860,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Считывает каталог из кластеров данных, сохраняя информацию о списке содержимого и сведения о каждом элементе.
+        /// Считывает каталог из кластеров данных, сохраняя информацию о списке содержимого и сведения о каждом элементе.
         /// </summary>
         /// <param name="clusterIndex">Номер первого кластера каталога.</param>
         /// <param name="fullPath">Абсолютный путь к считываемому каталогу.</param>
@@ -987,7 +984,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Находит в текущем каталоге указанный каталог и возвращает его.
+        /// Находит в текущем каталоге указанный каталог и возвращает его.
         /// </summary>
         /// <param name="directoryName">Имя искомого каталога.</param>
         /// <returns>Объект найденного каталога или null.</returns>
@@ -1017,7 +1014,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Открывает каталог для работы. Загружает в структуры ФС информацию о каталоге.
+        /// Открывает каталог для работы. Загружает в структуры ФС информацию о каталоге.
         /// TODO: Изменять текущий каталог.
         /// </summary>
         /// <param name="path">Путь к каталогу для открытия.</param>
@@ -1062,7 +1059,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// Считывает указанное количество байт содержимого файла, начиная с определённой позиции.
+        /// Считывает указанное количество байтов содержимого файла, начиная с определённой позиции.
         /// </summary>
         /// <param name="path">Путь к файлу, содержимое которого необходимо прочитать.</param>
         /// <returns>Возвращает массив байтов в соответствии с заданными параметрами.</returns>
@@ -1092,7 +1089,7 @@ namespace DehaxOS.FileSystem
             }
 
             //AccessRights ar = file.AccessRights;
-            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canExecute && !Utils.GetAccessRightsGroup(UserId, GroupId, file.UserId, file.GroupId, file.AccessRights).canRead)
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canExecute || !Utils.GetAccessRightsGroup(UserId, GroupId, file.UserId, file.GroupId, file.AccessRights).canRead)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к чтению файла!");
             }
@@ -1149,7 +1146,7 @@ namespace DehaxOS.FileSystem
         /// </summary>
         /// <param name="path">Путь к файлу.</param>
         /// <param name="data">Массив байтов.</param>
-        /// <returns></returns>
+        /// <returns>Количество записанных байтов.</returns>
         public int WriteFile(string path, byte[] data)
         {
             Utils.CheckPath(path);
@@ -1175,7 +1172,7 @@ namespace DehaxOS.FileSystem
             }
 
             //AccessRights ar = file.AccessRights;
-            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canExecute && !Utils.GetAccessRightsGroup(UserId, GroupId, file.UserId, file.GroupId, file.AccessRights).canWrite)
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canExecute || !Utils.GetAccessRightsGroup(UserId, GroupId, file.UserId, file.GroupId, file.AccessRights).canWrite)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к записи в файл!");
             }
@@ -1271,6 +1268,12 @@ namespace DehaxOS.FileSystem
             return numberWrittenBytes;
         }
 
+        /// <summary>
+        /// Выполняет дозапись массива байтов в конец файла.
+        /// </summary>
+        /// <param name="fileName">Путь к файлу.</param>
+        /// <param name="data">Массив байтов.</param>
+        /// <returns>Количество записанных байтов.</returns>
         public int AppendFile(string fileName, byte[] data)
         {
             File file = new File();
@@ -1284,7 +1287,7 @@ namespace DehaxOS.FileSystem
             }
 
             //AccessRights ar = file.AccessRights;
-            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canExecute && !Utils.GetAccessRightsGroup(UserId, GroupId, file.UserId, file.GroupId, file.AccessRights).canWrite)
+            if (!Utils.GetAccessRightsGroup(UserId, GroupId, CurrentDirectory.UserId, CurrentDirectory.GroupId, CurrentDirectory.AccessRights).canExecute || !Utils.GetAccessRightsGroup(UserId, GroupId, file.UserId, file.GroupId, file.AccessRights).canWrite)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к записи в файл!");
             }
@@ -1396,11 +1399,21 @@ namespace DehaxOS.FileSystem
             return numberWrittenBytes;
         }
 
+        /// <summary>
+        /// Переименовывает файл.
+        /// </summary>
+        /// <param name="path">Путь к файлу.</param>
+        /// <param name="newFileName">Новое имя файла.</param>
         public void RenameFile(string path, string newFileName)
         {
             RenameFileOrDirectory(path, newFileName);
         }
 
+        /// <summary>
+        /// Переименовывает каталог.
+        /// </summary>
+        /// <param name="path">Путь к каталогу.</param>
+        /// <param name="newDirectoryName">Новое имя каталога.</param>
         public void RenameDirectory(string path, string newDirectoryName)
         {
             RenameFileOrDirectory(path, newDirectoryName);
@@ -1417,7 +1430,7 @@ namespace DehaxOS.FileSystem
 
             //AccessRights ar = directory.AccessRights;
             if (!Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canRead
-                && !Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canWrite)
+                || !Utils.GetAccessRightsGroup(UserId, GroupId, directory.UserId, directory.GroupId, directory.AccessRights).canWrite)
             {
                 throw new UnauthorizedAccessException("Текущий пользователь не имеет доступа к изменению атрибутов объектов этого каталога!");
             }
@@ -1443,7 +1456,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Задаёт указанные атрибуты файлу или каталогу.
+        /// Задаёт указанные атрибуты файлу или каталогу.
         /// Не изменяет текущий рабочий каталог.
         /// </summary>
         /// <param name="path">Путь к файлу или каталогу.</param>
@@ -1484,7 +1497,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Возвращает атрибуты файла или каталога.
+        /// Возвращает атрибуты файла или каталога.
         /// </summary>
         /// <param name="path">Путь к файлу или каталогу.</param>
         /// <returns>атрибуты файла или каталога</returns>
@@ -1600,7 +1613,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Удаляет файл в файловой системе.
+        /// Удаляет файл в файловой системе.
         /// </summary>
         /// <param name="path">Путь к файлу.</param>
         public void DeleteFile(string path)
@@ -1609,7 +1622,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Удаляет каталог в файловой системе.
+        /// Удаляет каталог в файловой системе.
         /// </summary>
         /// <param name="path">Путь к каталогу.</param>
         public void DeleteDirectory(string path)
@@ -1618,7 +1631,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Удаляет запись из родительского каталога объекта и освобождает индексный дескриптор.
+        /// Удаляет запись из родительского каталога объекта и освобождает индексный дескриптор.
         /// </summary>
         /// <param name="path">Путь к каталогу или файлу, который необходимо удалить.</param>
         private void DeleteFileOrDirectory(string path)
@@ -1690,7 +1703,7 @@ namespace DehaxOS.FileSystem
         }
 
         /// <summary>
-        /// [+] Принудительно записывает изменения структур файловой системы на диск.
+        /// Принудительно записывает изменения структур файловой системы на диск.
         /// </summary>
         /// <param name="flushBitMap"></param>
         public void FlushAll(bool flushBitMap = true)

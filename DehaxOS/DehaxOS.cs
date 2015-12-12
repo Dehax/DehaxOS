@@ -1,14 +1,17 @@
 ﻿using DehaxOS.FileSystem;
+using DehaxOS.Scheduler;
 using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DehaxOS
 {
-    class DehaxOS : IDisposable
+    /// <summary>
+    /// Представляет ядро операционной системы DehaxOS.
+    /// </summary>
+    public class DehaxOS : IDisposable
     {
         #region Константы
 
@@ -17,8 +20,14 @@ namespace DehaxOS
 #if DEBUG
         public const string FS_IMAGE_PATH = @"..\..\..\image.dfs";
 #else
-        private const string FS_IMAGE_PATH = @"image.dfs";
+        /// <summary>
+        /// Путь к образу диска с файловой системой DehaxFS.
+        /// </summary>
+        public const string FS_IMAGE_PATH = @"image.dfs";
 #endif
+        /// <summary>
+        /// Путь в файловой системе к системному каталогу.
+        /// </summary>
         public const string SYSTEM_DIRECTORY_PATH = @"/dehaxos";
         private const string USERS_FILE_PATH = @"/dehaxos/users";
         private const string GROUPS_FILE_PATH = @"/dehaxos/groups";
@@ -42,9 +51,14 @@ namespace DehaxOS
         private DehaxFileSystem FileSystem { get; set; }
         private FileStream _fileSystemImage;
 
+        private DehaxScheduler Scheduler { get; set; }
+
         private UsersManager _usersManager;
         private GroupsManager _groupsManager;
 
+        /// <summary>
+        /// Менеджер пользователей.
+        /// </summary>
         public UsersManager UsersManager
         {
             get
@@ -52,7 +66,9 @@ namespace DehaxOS
                 return _usersManager;
             }
         }
-
+        /// <summary>
+        /// Менеджер групп пользователей.
+        /// </summary>
         public GroupsManager GroupsManager
         {
             get
@@ -62,6 +78,9 @@ namespace DehaxOS
         }
 
         private User ROOT_USER;
+        /// <summary>
+        /// Выполнен ли вход в систему.
+        /// </summary>
         public bool IsLoggedIn { get; private set; }
         private User _user;
         private User User
@@ -101,7 +120,9 @@ namespace DehaxOS
                 return false;
             }
         }
-
+        /// <summary>
+        /// Имя текущего пользователя.
+        /// </summary>
         public string UserName
         {
             get
@@ -109,7 +130,9 @@ namespace DehaxOS
                 return User.userName;
             }
         }
-
+        /// <summary>
+        /// ID текущего пользователя.
+        /// </summary>
         public short UserId
         {
             get
@@ -117,7 +140,9 @@ namespace DehaxOS
                 return User.userId;
             }
         }
-
+        /// <summary>
+        /// ID группы текущего пользователя.
+        /// </summary>
         public short GroupId
         {
             get
@@ -126,10 +151,38 @@ namespace DehaxOS
             }
         }
 
+        private int _lastPID = 0;
+        /// <summary>
+        /// Следующий свободный PID.
+        /// </summary>
+        public int NextPID
+        {
+            get
+            {
+                _lastPID++;
+
+                return _lastPID;
+            }
+            private set
+            {
+                if (value < 1)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(NextPID), "Значение PID не может быть отрицательным!");
+                }
+
+                _lastPID = value - 1;
+            }
+        }
+
+        /// <summary>
+        /// Выполняет инициализацию ядра ОС.
+        /// </summary>
         public DehaxOS()
         {
             _fileSystemImage = new FileStream(FS_IMAGE_PATH, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FS_IMAGE_BUFFER, FileOptions.RandomAccess);
             FileSystem = new DehaxFileSystem(_fileSystemImage, ROOT_USER_ID, ROOT_GROUP_ID);
+
+            Scheduler = new DehaxScheduler();
 
             _usersManager = new UsersManager();
             _groupsManager = new GroupsManager();
@@ -158,11 +211,17 @@ namespace DehaxOS
             }
         }
 
+        /// <summary>
+        /// Выполняет служебные действия при завершении работы ядра ОС.
+        /// </summary>
         ~DehaxOS()
         {
             _fileSystemImage.Close();
         }
 
+        /// <summary>
+        /// Вызывается при освобождении ресурсов.
+        /// </summary>
         public void Dispose()
         {
             ((IDisposable)_fileSystemImage).Dispose();
@@ -321,6 +380,10 @@ namespace DehaxOS
             return false;
         }
 
+        /// <summary>
+        /// Выполняет выход из системы.
+        /// </summary>
+        /// <returns>true в случае успешного выхода из системы и false, иначе</returns>
         public bool Logout()
         {
             // TODO: Написать процедуру выхода из системы (завершение работы, выключение компьютера).
@@ -376,74 +439,250 @@ namespace DehaxOS
         }
 
         #region Интерфейс файловой системы
+        /// <summary>
+        /// Создаёт новый пустой каталог.
+        /// </summary>
+        /// <param name="path">Путь к создаваемому каталогу.</param>
         public void CreateDirectory(string path)
         {
             FileSystem.CreateDirectory(path);
         }
 
+        /// <summary>
+        /// Создаёт новый пустой файл.
+        /// </summary>
+        /// <param name="path">Путь к создаваемому файлу.</param>
         public void CreateFile(string path)
         {
             FileSystem.CreateFile(path);
         }
 
+        /// <summary>
+        /// Открывает каталог для работы. Загружает в структуры ФС информацию о каталоге.
+        /// </summary>
+        /// <param name="path">Путь к каталогу для открытия.</param>
         public FileSystem.Directory OpenDirectory(string path)
         {
             return FileSystem.OpenDirectory(path);
         }
 
+        /// <summary>
+        /// Возвращает атрибуты файла или каталога.
+        /// </summary>
+        /// <param name="path">Путь к файлу или каталогу.</param>
+        /// <returns>атрибуты файла или каталога</returns>
         public Attributes GetAttributes(string path)
         {
             return FileSystem.GetAttributes(path);
         }
 
+        /// <summary>
+        /// Задаёт указанные атрибуты файлу или каталогу.
+        /// Не изменяет текущий рабочий каталог.
+        /// </summary>
+        /// <param name="path">Путь к файлу или каталогу.</param>
+        /// <param name="attributes">Атрибуты, которые будут заданы.</param>
         public void SetAttributes(string path, Attributes attributes)
         {
             FileSystem.SetAttributes(path, attributes);
         }
 
+        /// <summary>
+        /// Возвращает права доступа к файлу или каталогу.
+        /// </summary>
+        /// <param name="path">Путь к файлу или каталогу.</param>
+        /// <returns>права доступа к файлу или каталогу</returns>
         public AccessRights GetAccessRights(string path)
         {
             return FileSystem.GetAccessRights(path);
         }
 
+        /// <summary>
+        /// Назначает указанные права доступа файлу или каталогу.
+        /// </summary>
+        /// <param name="path">Путь к файлу или каталогу.</param>
+        /// <param name="accessRights">Права доступа, которые будут назначены.</param>
         public void SetAccessRights(string path, AccessRights accessRights)
         {
             FileSystem.SetAccessRights(path, accessRights);
         }
 
+        /// <summary>
+        /// Удаляет файл в файловой системе.
+        /// </summary>
+        /// <param name="path">Путь к файлу.</param>
         public void DeleteFile(string path)
         {
             FileSystem.DeleteFile(path);
         }
 
+        /// <summary>
+        /// Удаляет каталог в файловой системе.
+        /// </summary>
+        /// <param name="path">Путь к каталогу.</param>
         public void DeleteDirectory(string path)
         {
             FileSystem.DeleteDirectory(path);
         }
 
+        /// <summary>
+        /// Считывает указанное количество байтов содержимого файла, начиная с определённой позиции.
+        /// </summary>
+        /// <param name="path">Путь к файлу, содержимое которого необходимо прочитать.</param>
+        /// <returns>Возвращает массив байтов в соответствии с заданными параметрами.</returns>
         public byte[] ReadFile(string path, int offset = 0, int count = -1)
         {
             return FileSystem.ReadFile(path, offset, count);
         }
 
+        /// <summary>
+        /// Записывает массив байтов в файл, переписывая его содержимое.
+        /// </summary>
+        /// <param name="path">Путь к файлу.</param>
+        /// <param name="data">Массив байтов.</param>
+        /// <returns>Количество записанных байтов.</returns>
         public void WriteFile(string path, byte[] data)
         {
             FileSystem.WriteFile(path, data);
         }
 
+        /// <summary>
+        /// Выполняет дозапись массива байтов в конец файла.
+        /// </summary>
+        /// <param name="path">Путь к файлу.</param>
+        /// <param name="data">Массив байтов.</param>
+        /// <returns>Количество записанных байтов.</returns>
         public void AppendFile(string path, byte[] data)
         {
             FileSystem.AppendFile(path, data);
         }
 
+        /// <summary>
+        /// Переименовывает файл.
+        /// </summary>
+        /// <param name="path">Путь к файлу.</param>
+        /// <param name="newFileName">Новое имя файла.</param>
         public void RenameFile(string path, string newFileName)
         {
             FileSystem.RenameFile(path, newFileName);
         }
 
+        /// <summary>
+        /// Переименовывает каталог.
+        /// </summary>
+        /// <param name="path">Путь к каталогу.</param>
+        /// <param name="newDirectoryName">Новое имя каталога.</param>
         public void RenameDirectory(string path, string newDirectoryName)
         {
             FileSystem.RenameDirectory(path, newDirectoryName);
+        }
+
+        /// <summary>
+        /// Выполняет копирование каталога в указанный каталог.
+        /// При копировании каталога также копируется его содержимое.
+        /// </summary>
+        /// <param name="pathFrom">Путь к копируемому каталогу.</param>
+        /// <param name="pathTo">Путь к каталогу, который будет содержать скопированный каталог.</param>
+        public void CopyDirectory(string pathFrom, string pathTo)
+        {
+            FileSystem.Directory directory = FileSystem.OpenDirectory(pathFrom);
+            FileSystem.Directory resultDirectory = FileSystem.OpenDirectory(pathTo);
+
+            if (resultDirectory.Find(directory.FullName) == null)
+            {
+                FileSystem.CreateDirectory(pathTo + "/" + directory.FullName);
+            }
+
+            for (int i = 2; i < directory.Count; i++)
+            {
+                MetaFile metaFile = directory[i];
+
+                if (metaFile is FileSystem.Directory)
+                {
+                    CopyDirectory(pathFrom + "/" + metaFile.FullName, pathTo + "/" + directory.FullName);
+                }
+                else
+                {
+                    CopyFile(pathFrom + "/" + metaFile.FullName, pathTo + "/" + directory.FullName);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Выполняет копирование файла в указанный каталог.
+        /// </summary>
+        /// <param name="pathFrom">Путь к копируемому файлу.</param>
+        /// <param name="pathTo">Путь к каталогу, который будет содержать скопированный файл.</param>
+        public void CopyFile(string pathFrom, string pathTo)
+        {
+            byte[] data = FileSystem.ReadFile(pathFrom);
+
+            FileSystem.Directory resultDirectory = FileSystem.OpenDirectory(pathTo);
+
+            string fileFullName = Utils.GetFileName(pathFrom);
+            string path = pathTo + "/" + fileFullName;
+
+            if (resultDirectory.Find(fileFullName) == null)
+            {
+                FileSystem.CreateFile(path);
+                FileSystem.WriteFile(path, data);
+            }
+        }
+        #endregion
+
+        #region Интерфейс планировщика
+        /// <summary>
+        /// Запускает работу планировщика и обработку процессов.
+        /// </summary>
+        public void StartScheduling(BackgroundWorker worker)
+        {
+            Scheduler.Start(worker);
+            ClearScheduler();
+        }
+
+        /// <summary>
+        /// Посылает планировщику запрос на создание нового процесса.
+        /// </summary>
+        /// <param name="pid">ID процесса.</param>
+        /// <param name="cpuBurstTime">Время CPU, необходимое процессу на выполнение.</param>
+        /// <param name="ioBurstTime">Время I/O, необходимое процессу на выполнение.</param>
+        /// <param name="priority">Приоритет процесса.</param>
+        /// <param name="parent">Родительский процесс.</param>
+        /// <returns>true, если процесс успешно добавлен, и false, иначе.</returns>
+        public bool AddProcess(int pid, int cpuBurstTime, int ioBurstTime, ProcessPriority priority = ProcessPriority.Normal, Process parent = null)
+        {
+            return Scheduler.AddProcess(pid, cpuBurstTime, ioBurstTime, priority, parent);
+        }
+
+        /// <summary>
+        /// Изменяет приоритет процесса в системе.
+        /// </summary>
+        /// <param name="pid">ID процесса, приоритет которого нужно изменить.</param>
+        /// <param name="priority">Значение нового приоритета.</param>
+        /// <returns>true, если приоритет процесса успешно изменён, и false, иначе.</returns>
+        public bool ChangeProcessPriority(int pid, ProcessPriority priority)
+        {
+            return Scheduler.ChangeProcessPriority(pid, priority);
+        }
+
+        /// <summary>
+        /// Посылает запрос на уничтожение процесса.
+        /// </summary>
+        /// <param name="pid">ID процесса, который нужно уничтожить.</param>
+        /// <returns>true, если процесс назначен на уничтожение, и false, иначе.</returns>
+        public bool KillProcess(int pid)
+        {
+            return Scheduler.KillProcess(pid);
+        }
+
+        /// <summary>
+        /// Останавливает работу планировщика и очищает списки процессов.
+        /// </summary>
+        public void ClearScheduler()
+        {
+            Scheduler.Clear();
+
+            NextPID = 1;
         }
         #endregion
     }

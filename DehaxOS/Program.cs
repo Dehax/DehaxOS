@@ -1,20 +1,17 @@
-﻿using DehaxOS.FileSystem;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DehaxOS
 {
     static class Program
     {
+#if DEBUG
         private const string FORMAT_DISK_TOOL_PATH = @"..\..\..\DFSformat\bin\Debug\DFSformat.exe";
-        //private const string FORMAT_DISK_TOOL_PATH = @"DFSformat.exe";
+#else
+        private const string FORMAT_DISK_TOOL_PATH = @"DFSformat.exe";
+#endif
 
         public static bool FormatDisk = false;
 
@@ -26,7 +23,15 @@ namespace DehaxOS
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            
+            if (System.IO.File.Exists(DehaxOS.FS_IMAGE_PATH))
+            {
+                Application.Run(new MainForm());
+            }
+            else
+            {
+                FormatDisk = true;
+            }
 
             while (FormatDisk)
             {

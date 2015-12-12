@@ -85,7 +85,7 @@
             this.Controls.Add(this.nameTextBox);
             this.Controls.Add(this.nameLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.Name = "EditNameForm";
+            this.NewName = "EditNameForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Имя";
             this.Load += new System.EventHandler(this.EditNameForm_Load);

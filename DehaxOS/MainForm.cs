@@ -1,12 +1,6 @@
 ﻿using DehaxOS.FileSystem;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DehaxOS
@@ -14,6 +8,9 @@ namespace DehaxOS
     public partial class MainForm : Form
     {
         private DehaxOS _dehaxOS;
+
+        private bool _isCopied;
+        private TreeNode _nodeCopyFrom;
 
         public MainForm()
         {
@@ -74,8 +71,16 @@ namespace DehaxOS
 
             if (propertiesForm.ShowDialog(this) == DialogResult.OK)
             {
-                _dehaxOS.SetAttributes(currentMetaFilePath, propertiesForm.Attributes);
-                _dehaxOS.SetAccessRights(currentMetaFilePath, propertiesForm.AccessRights);
+                try
+                {
+                    _dehaxOS.SetAttributes(currentMetaFilePath, propertiesForm.Attributes);
+                    _dehaxOS.SetAccessRights(currentMetaFilePath, propertiesForm.AccessRights);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
             }
         }
 
@@ -87,46 +92,54 @@ namespace DehaxOS
             }
 
             string metaFilePath = GetNodePath(metaFileNode);
-            
-            if (metaFileNode.GetNodeCount(true) > 0)
+
+            try
             {
-                Directory directory = _dehaxOS.OpenDirectory(metaFilePath);
-                TreeNodeCollection nodes = metaFileNode.Nodes;
-                nodes.Clear();
-
-                for (int i = 2; i < directory.Count; i++)
+                if (metaFileNode.GetNodeCount(true) > 0)
                 {
-                    MetaFile metaFile = directory[i];
+                    Directory directory = _dehaxOS.OpenDirectory(metaFilePath);
+                    TreeNodeCollection nodes = metaFileNode.Nodes;
+                    nodes.Clear();
 
-                    TreeNode node = new TreeNode(metaFile.FullName);
-                    node.Name = metaFile.FullName;
-                    if (metaFile is Directory)
+                    for (int i = 2; i < directory.Count; i++)
                     {
-                        node.Nodes.Add("<пусто>");
-                    }
-                    nodes.Add(node);
-                }
+                        MetaFile metaFile = directory[i];
 
-                if (nodes.Count == 0)
+                        TreeNode node = new TreeNode(metaFile.FullName);
+                        node.Name = metaFile.FullName;
+                        if (metaFile is Directory)
+                        {
+                            node.Nodes.Add("<пусто>");
+                        }
+                        nodes.Add(node);
+                    }
+
+                    if (nodes.Count == 0)
+                    {
+                        nodes.Add("<пусто>");
+                    }
+                }
+                else
                 {
-                    nodes.Add("<пусто>");
+                    byte[] data = _dehaxOS.ReadFile(metaFilePath);
+                    string content = Encoding.ASCII.GetString(data);
+
+                    TextFileEditorForm editorForm = new TextFileEditorForm();
+                    editorForm.FileContent = content;
+
+                    if (editorForm.ShowDialog(this) == DialogResult.OK)
+                    {
+                        content = editorForm.FileContent;
+                        data = Encoding.ASCII.GetBytes(content);
+
+                        _dehaxOS.WriteFile(metaFilePath, data);
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                byte[] data = _dehaxOS.ReadFile(metaFilePath);
-                string content = Encoding.ASCII.GetString(data);
-
-                TextFileEditorForm editorForm = new TextFileEditorForm();
-                editorForm.FileContent = content;
-
-                if (editorForm.ShowDialog(this) == DialogResult.OK)
-                {
-                    content = editorForm.FileContent;
-                    data = Encoding.ASCII.GetBytes(content);
-
-                    _dehaxOS.WriteFile(metaFilePath, data);
-                }
+                MessageBox.Show(this, ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
         }
 
@@ -151,21 +164,29 @@ namespace DehaxOS
                 return;
             }
 
-            if (metaFileNode.GetNodeCount(true) > 0)
+            try
             {
-                _dehaxOS.DeleteDirectory(currentMetaFilePath);
-            }
-            else
-            {
-                _dehaxOS.DeleteFile(currentMetaFilePath);
-            }
+                if (metaFileNode.GetNodeCount(true) > 0)
+                {
+                    _dehaxOS.DeleteDirectory(currentMetaFilePath);
+                }
+                else
+                {
+                    _dehaxOS.DeleteFile(currentMetaFilePath);
+                }
 
-            TreeNode parentNode = metaFileNode.Parent;
-            metaFileNode.Remove();
-            
-            if (parentNode.GetNodeCount(true) == 0)
+                TreeNode parentNode = metaFileNode.Parent;
+                metaFileNode.Remove();
+
+                if (parentNode.GetNodeCount(true) == 0)
+                {
+                    parentNode.Nodes.Add("<пусто>");
+                }
+            }
+            catch (Exception ex)
             {
-                parentNode.Nodes.Add("<пусто>");
+                MessageBox.Show(this, ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
         }
 
@@ -190,13 +211,13 @@ namespace DehaxOS
             {
                 try
                 {
-                    _dehaxOS.CreateDirectory((currentMetaFilePath != "/" ? currentMetaFilePath + "/" : currentMetaFilePath) + editNameForm.Name);
+                    _dehaxOS.CreateDirectory((currentMetaFilePath != "/" ? currentMetaFilePath + "/" : currentMetaFilePath) + editNameForm.NewName);
                     if (node.FirstNode.Text == "<пусто>")
                     {
                         node.FirstNode.Remove();
                     }
 
-                    TreeNode newNode = node.Nodes.Add(editNameForm.Name);
+                    TreeNode newNode = node.Nodes.Add(editNameForm.NewName);
                     newNode.Nodes.Add("<пусто>");
                 }
                 catch (Exception ex) when (ex is ArgumentException)
@@ -228,14 +249,14 @@ namespace DehaxOS
             {
                 try
                 {
-                    _dehaxOS.CreateFile((currentMetaFilePath != "/" ? currentMetaFilePath + "/" : currentMetaFilePath) + editNameForm.Name);
+                    _dehaxOS.CreateFile((currentMetaFilePath != "/" ? currentMetaFilePath + "/" : currentMetaFilePath) + editNameForm.NewName);
 
                     if (node.FirstNode.Text == "<пусто>")
                     {
                         node.FirstNode.Remove();
                     }
 
-                    TreeNode newNode = node.Nodes.Add(editNameForm.Name);
+                    TreeNode newNode = node.Nodes.Add(editNameForm.NewName);
                 }
                 catch (Exception ex) when (ex is ArgumentException)
                 {
@@ -270,16 +291,99 @@ namespace DehaxOS
 
             if (editNameForm.ShowDialog(this) == DialogResult.OK)
             {
-                if (node.GetNodeCount(true) > 0)
+                try
                 {
-                    _dehaxOS.RenameDirectory(currentMetaFilePath, editNameForm.Name);
-                    node.Text = editNameForm.Name;
+                    if (node.GetNodeCount(true) > 0)
+                    {
+                        _dehaxOS.RenameDirectory(currentMetaFilePath, editNameForm.NewName);
+                        node.Text = editNameForm.NewName;
+                    }
+                    else
+                    {
+                        _dehaxOS.RenameFile(currentMetaFilePath, editNameForm.NewName);
+                        node.Text = editNameForm.NewName;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+        }
+
+        private void CopyMetaFile(TreeNode fromNode, TreeNode toNode)
+        {
+            if (fromNode.Text == "<пусто>")
+            {
+                return;
+            }
+
+            bool isFile = fromNode.GetNodeCount(true) <= 0;
+            string currentFromMetaFilePath = GetNodePath(fromNode);
+
+            if (currentFromMetaFilePath == "/")
+            {
+                MessageBox.Show(this, "Невозможно скопировать корневой каталог!", "Невозможно скопировать", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (currentFromMetaFilePath.StartsWith(DehaxOS.SYSTEM_DIRECTORY_PATH))
+            {
+                MessageBox.Show(this, "Невозможно скопировать файлы системы!", "Невозможно скопировать", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string currentToMetaFilePath = GetNodePath(toNode);
+
+            if (currentToMetaFilePath == "/")
+            {
+                MessageBox.Show(this, "Невозможно копировать в корневой каталог!", "Невозможно копировать", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (currentToMetaFilePath.StartsWith(DehaxOS.SYSTEM_DIRECTORY_PATH))
+            {
+                MessageBox.Show(this, "Невозможно копировать в файлы системы!", "Невозможно копировать", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                if (isFile)
+                {
+                    _dehaxOS.CopyFile(currentFromMetaFilePath, currentToMetaFilePath);
+
+                    if (toNode.FirstNode.Text == "<пусто>")
+                    {
+                        toNode.FirstNode.Remove();
+                    }
+
+                    if (!toNode.Nodes.ContainsKey(fromNode.Text))
+                    {
+                        TreeNode newNode = toNode.Nodes.Add(fromNode.Text);
+                    }
                 }
                 else
                 {
-                    _dehaxOS.RenameFile(currentMetaFilePath, editNameForm.Name);
-                    node.Text = editNameForm.Name;
+                    _dehaxOS.CopyDirectory(currentFromMetaFilePath, currentToMetaFilePath);
+
+                    if (toNode.FirstNode.Text == "<пусто>")
+                    {
+                        toNode.FirstNode.Remove();
+                    }
+
+                    if (!toNode.Nodes.ContainsKey(fromNode.Text))
+                    {
+                        TreeNode newNode = toNode.Nodes.Add(fromNode.Text);
+                        newNode.Nodes.Add("<пусто>");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
         }
 
@@ -455,6 +559,35 @@ namespace DehaxOS
         {
             Program.FormatDisk = true;
             Close();
+        }
+
+        private void copyMenuItem_Click(object sender, EventArgs e)
+        {
+            _isCopied = true;
+            _nodeCopyFrom = fileSystemTreeView.SelectedNode;
+            insertMenuItem.Enabled = true;
+        }
+
+        private void insertMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileSystemTreeView.SelectedNode.GetNodeCount(true) > 0)
+            {
+                CopyMetaFile(_nodeCopyFrom, fileSystemTreeView.SelectedNode);
+            }
+            else
+            {
+                CopyMetaFile(_nodeCopyFrom, fileSystemTreeView.SelectedNode.Parent);
+            }
+
+            _isCopied = false;
+            _nodeCopyFrom = null;
+            insertMenuItem.Enabled = false;
+        }
+
+        private void schedulerMenuItem_Click(object sender, EventArgs e)
+        {
+            SchedulerForm schedulerForm = new SchedulerForm(_dehaxOS);
+            schedulerForm.ShowDialog(this);
         }
     }
 }

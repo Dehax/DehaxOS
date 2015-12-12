@@ -1,23 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Windows.Forms;
 
 namespace DehaxOS
 {
     public partial class EditNameForm : Form
     {
-        private string _name;
-        public string Name
+        private string _newName;
+        public string NewName
         {
             get
             {
-                return _name;
+                return _newName;
             }
             set
             {
@@ -26,7 +20,12 @@ namespace DehaxOS
                     throw new NullReferenceException("Имя не может быть пустым или содержать пробельные символы!");
                 }
 
-                _name = value;
+                if (value.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(NewName), "Имя содержит недопустимые символы!");
+                }
+
+                _newName = value;
             }
         }
 
@@ -34,26 +33,26 @@ namespace DehaxOS
         {
             InitializeComponent();
 
-            _name = string.Empty;
+            _newName = string.Empty;
         }
 
         private void okButton_Click(object sender, EventArgs e)
         {
             try
             {
-                Name = nameTextBox.Text;
+                NewName = nameTextBox.Text;
             }
             catch (Exception ex) when (ex is NullReferenceException)
             {
                 MessageBox.Show(this, ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                DialogResult = DialogResult.OK;
+                DialogResult = DialogResult.None;
                 return;
             }
         }
 
         private void EditNameForm_Load(object sender, EventArgs e)
         {
-            nameTextBox.Text = Name;
+            nameTextBox.Text = NewName;
         }
     }
 }

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace DehaxOS.FileSystem
 {
-    class Directory : MetaFile
+    public class Directory : MetaFile
     {
         List<MetaFile> records;
         string _fullPathToDirectory;

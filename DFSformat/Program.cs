@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DFSformat
@@ -22,7 +18,7 @@ namespace DFSformat
             //    MessageBox.Show(s);
             //}
 
-            if (args.Length > 1)
+            if (args.Length != 1)
             {
                 Console.Error.WriteLine("Неверно заданы параметры!");
                 Console.Error.WriteLine("Синтаксис:");
@@ -32,11 +28,11 @@ namespace DFSformat
 
             string imagePath = args[0];
 
-            if (!File.Exists(imagePath))
-            {
-                Console.Error.WriteLine("Указанный файл не существует!");
-                return 2;
-            }
+            //if (!File.Exists(imagePath))
+            //{
+            //    Console.Error.WriteLine("Указанный файл не существует!");
+            //    return 2;
+            //}
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DehaxOS.FileSystem
+﻿namespace DehaxOS.FileSystem
 {
-    abstract class MetaFile
+    public abstract class MetaFile
     {
         public const char EXTENSION_PREFIX = '.';
 
