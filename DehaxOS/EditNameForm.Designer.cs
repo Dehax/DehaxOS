@@ -46,7 +46,7 @@
             // nameTextBox
             // 
             this.nameTextBox.Location = new System.Drawing.Point(13, 30);
-            this.nameTextBox.MaxLength = 15;
+            this.nameTextBox.MaxLength = 14;
             this.nameTextBox.Name = "nameTextBox";
             this.nameTextBox.Size = new System.Drawing.Size(259, 20);
             this.nameTextBox.TabIndex = 1;
@@ -85,7 +85,7 @@
             this.Controls.Add(this.nameTextBox);
             this.Controls.Add(this.nameLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.NewName = "EditNameForm";
+            this.Name = "EditNameForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Имя";
             this.Load += new System.EventHandler(this.EditNameForm_Load);
