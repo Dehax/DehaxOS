@@ -1,0 +1,6 @@
+{
+  "name": "DehaxOS",
+  "tagline": "Emulates working of the typical operating system.",
+  "body": "# DehaxOS\r\nEmulates working of the typical operating system.\r\n\r\n[![Build Status](https://travis-ci.com/Dehax/DehaxOS.svg?token=EQ3SugH7u3nfzeHAfVmP&branch=master)](https://travis-ci.com/Dehax/DehaxOS)\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
